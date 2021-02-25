@@ -30,7 +30,7 @@
     <div class="row">
 
       <template v-for="info in classes">
-        <class-card :name="info.name" :fullinfolink="info.fullInfoLink" :days="info.days"></class-card>
+        <class-card :info="info"></class-card>
       </template>
 
     </div>
@@ -38,23 +38,27 @@
 
 </body>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script>
   Vue.component('class-card', {
       props: {
-        name: String,
-        fullinfolink: String,
-        days: Object
+        info: Object
+      },
+      data: function() {
+        return {
+          everybody: "Все присутствуют"
+        }
       },
       template: `
         <div class="card-container col-11 col-md-9 col-lg-6 col-xl-4 mx-auto mt-2 p-1">
           <div class="class-card card" :class="getCssClass">
             <div class="card-header py-3 d-flex justify-content-between">
               <span class="title mx-0 my-auto">
-                {{ name }}
+                {{ info.number }} {{ info.letter }}
               </span>
               <div class="my-2 d-flex align-items-center">
-                <a :href="fullinfolink" class="action">
+                <a href="#" class="action">
                   подробнее
                 </a>
               </div>
@@ -63,21 +67,25 @@
               <div class="days">
                 <div class="day">
                   <div class="day-title">
-                    Сегодня <span class="date">{{ days.today.date }}</span>
+                    Сегодня <span class="date">{{ formatDate(info.days.today.date) }}</span>
                   </div>
                   <div class="day-list pl-2">
-                    <template v-if="days.today.students">{{ days.today.students }}</template>
-                    <a v-else :href="days.today.link" class="action">заполнить</a>
+                    <template v-if="info.days.today.status == 'ok'">
+                      {{ formatAbsent(this.info.days.today.students) }}
+                    </template>
+                    <a v-else-if="info.days.today.status == 'empty'" href="#" class="action">заполнить</a>
                   </div>
                 </div>
                 <hr class="between-days">
                 <div class="day">
                   <div class="day-title">
-                    Вчера <span class="date">{{ days.yesterday.date }}</span>
+                    Вчера <span class="date">{{ formatDate(info.days.yesterday.date) }}</span>
                   </div>
                   <div class="day-list pl-2">
-                    <template v-if="days.yesterday.students">{{ days.yesterday.students }}</template>
-                    <a v-else :href="days.yesterday.link" class="action">заполнить</a>
+                    <template v-if="info.days.yesterday.status == 'ok'">
+                      {{ formatAbsent(this.info.days.yesterday.students) }}
+                    </template>
+                    <a v-else-if="info.days.yesterday.status == 'empty'" href="#" class="action">заполнить</a>
                   </div>
                 </div>
               </div>
@@ -86,15 +94,42 @@
         </div>`,
       computed: {
           getCssClass: function() {
-            return {'sent': this.days.today.students != ""}
+            return {'sent': this.info.days.today.students != ""}
           }
+      },
+      methods: {
+        formatAbsent: function(students) {
+          return students.length ? students.join(", ") : this.everybody;
+        },
+        formatDate: function(date) {
+          const months = [
+            "янв",
+            "фев",
+            "мар",
+            "апр",
+            "мая",
+            "июн",
+            "июл",
+            "авг",
+            "сен",
+            "окт",
+            "ноя",
+            "дек"
+          ];
+          var date = new Date(date);
+          var formatted = "";
+          formatted += date.getDate();
+          formatted += " ";
+          formatted += months[date.getMonth()];
+          return formatted;
+        }
       }
   });
 
   app = new Vue({
       el: "#app",
       data: {
-          classes: [
+          classes_example: [
             {name: "11А", fullInfoLink: "#", days: {
               today: {
                 students: "",
@@ -143,7 +178,13 @@
                 date: "16 фев"
               }
             }},
-          ]
+          ],
+          classes: null
+      },
+      mounted() {
+        axios
+          .get('http://localhost:8000/api/summary')
+          .then(response => (this.classes = response.data));
       }
   })
 </script>
