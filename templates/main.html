@@ -17,7 +17,7 @@
 
   <link rel="stylesheet" href="../static/style.css">
 
-  <title>Classes</title>
+  <title>Сводка</title>
 
   <style>
 
@@ -58,7 +58,7 @@
                 {{ info.number }} {{ info.letter }}
               </span>
               <div class="my-2 d-flex align-items-center">
-                <a href="#" class="action">
+                <a href="/day" class="action">
                   подробнее
                 </a>
               </div>
@@ -73,7 +73,7 @@
                     <template v-if="info.days.today.status == 'ok'">
                       {{ formatAbsent(this.info.days.today.students) }}
                     </template>
-                    <a v-else-if="info.days.today.status == 'empty'" href="#" class="action">заполнить</a>
+                    <a v-else-if="info.days.today.status == 'empty'" href="/day" class="action">заполнить</a>
                   </div>
                 </div>
                 <hr class="between-days">
@@ -85,7 +85,7 @@
                     <template v-if="info.days.yesterday.status == 'ok'">
                       {{ formatAbsent(this.info.days.yesterday.students) }}
                     </template>
-                    <a v-else-if="info.days.yesterday.status == 'empty'" href="#" class="action">заполнить</a>
+                    <a v-else-if="info.days.yesterday.status == 'empty'" href="/day" class="action">заполнить</a>
                   </div>
                 </div>
               </div>
