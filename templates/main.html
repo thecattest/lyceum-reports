@@ -183,7 +183,7 @@
       },
       mounted() {
         axios
-          .get('http://localhost:8000/api/summary')
+          .get('http://'+ window.location.host +'/api/summary')
           .then(response => (this.classes = response.data));
       }
   })
