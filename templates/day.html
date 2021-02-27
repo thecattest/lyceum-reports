@@ -70,11 +70,16 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-          <button type="button" id="sendButton" class="btn btn-success">Отправить</button>
+          <button type="button" id="sendButton" @click="send" class="btn btn-success">Отправить</button>
         </div>
       </div>
     </div>
   </div>
+
+  <form :action="action" method="POST" style="display:none;">
+    <input type="text" name="ids" :value="absentIds">
+    <input type="text" name="date" :value="date">
+  </form>
 
 </div>
 </body>
@@ -87,12 +92,12 @@
       student: Object
     },
     template: `
-    <li @click="check" class="student list-group-item d-flex justify-content-between" :class="isActive">
-      {{ student.name }}
-      <i class="fas fa-times student-check mt-1"></i>
-    </li>`,
+      <li @click="check" class="student list-group-item d-flex justify-content-between" :class="isAbsent">
+        {{ student.name }}
+        <i class="fas fa-times student-check mt-1"></i>
+      </li>`,
     computed: {
-      isActive: function() {
+      isAbsent: function() {
         return {'absent': this.student.absent}
       }
     },
@@ -150,6 +155,15 @@
           formatted += " ";
           formatted += months[date.getMonth()];
           return formatted;
+        },
+        action: function() {
+          return 'http://'+ window.location.host +'/api/day/'+this.id;
+        },
+        absentIds: function() {
+          var absent_students = this.students.filter(student => student.absent);
+          var ids = absent_students.map(student => student.id);
+          console.log(ids);
+          return ids.join(",");
         }
       },
       methods: {
@@ -183,6 +197,9 @@
           var yyyy = today.getFullYear();
           today = yyyy + '-' + mm + '-' + dd;
           return today;
+        },
+        send: function() {
+          $("form").submit();
         }
       },
       watch: {
@@ -200,14 +217,5 @@
       }
     })
 </script>
-
-  <script>
-
-    $("#sendButton").click(function () {
-      // location.reload()
-      window.location.replace("/summary");
-    });
-
-  </script>
 
 </html>

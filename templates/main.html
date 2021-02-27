@@ -58,7 +58,7 @@
                 {{ info.number }} {{ info.letter }}
               </span>
               <div class="my-2 d-flex align-items-center">
-                <a href="/summary" class="action">
+                <a :href="editLink" class="action">
                   подробнее
                 </a>
               </div>
@@ -98,7 +98,10 @@
         </div>`,
       computed: {
           getCssClass: function() {
-            return {'sent': this.info.days.today.students != ""}
+            return {'sent': this.info.days.today.status == "ok"}
+          },
+          editLink: function() {
+            return '/day?id=' + this.info.id;
           }
       },
       methods: {

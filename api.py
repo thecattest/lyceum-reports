@@ -1,7 +1,7 @@
-from flask import Blueprint, jsonify, make_response, abort, request
-from datetime import date, timedelta
+from flask import Blueprint, jsonify, make_response, abort, redirect
+from datetime import date, timedelta, datetime
 from db_init import *
-from request_parsers import GetDayParser
+from request_parsers import GetDayParser, UpdateDayParser
 
 
 api_blueprint = Blueprint("api", __name__,
@@ -61,6 +61,29 @@ def get_day(group_id):
     }), 200)
 
 
-@api_blueprint.route("/api/day", methods=["POST"])
-def update_day():
-    pass
+@api_blueprint.route("/api/day/<int:group_id>", methods=["POST"])
+def update_day(group_id):
+    args = UpdateDayParser.parse_args()
+    db = db_session.create_session()
+    group = db.query(Group).get(group_id)
+    if group is None:
+        abort(404)
+    day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
+    if day is None:
+        day = Day()
+        day.date = datetime.strptime(args.date, "%Y-%m-%d")
+        day.group_id = group_id
+        db.add(day)
+    try:
+        ids = list(map(int, args.ids.split(",")))
+    except ValueError:
+        ids = []
+    print(ids)
+    day.absent = []
+    for id in ids:
+        student = db.query(Student).get(int(id))
+        if student is None or student not in group.students:
+            abort(400)
+        day.absent.append(student)
+    db.commit()
+    return redirect("/")
