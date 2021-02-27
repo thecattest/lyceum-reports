@@ -32,7 +32,26 @@
 
   <div class="container-fluid p-2">
     <div class="row">
-      <list :name="name" :students="students"></list>
+      <div class="students-list card col-11 col-md-9 col-lg-6 col-xl-5 mx-auto mt-2 p-0">
+        <div class="card-header py-3 d-flex justify-content-between">
+          <span class="title mx-0 my-auto">
+            {{ name }}
+          </span>
+          <div class="my-auto d-flex align-items-center">
+            <input type="date" class="form-control" v-model:value="date" />
+          </div>
+        </div>
+        <div class="card-body text-right px-0 pt-0">
+          <ul class="list-group list-group-flush">
+            <item :student="student" v-for="student in students" :key="student.id"></item>
+          </ul>
+          <button @click="clear" class="mt-2 btn btn-danger mt-3">Очистить</button>
+          <button id="confirm" data-toggle="modal" data-target="#confirmationModal"
+            class="mt-2 btn btn-success ml-0 mr-2 mt-3">
+            Подтвердить
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -41,7 +60,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="confirmationModalLabel">Подтверждение</h5>
+          <h5 class="modal-title" id="confirmationModalLabel">{{ prettyDate }}</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -60,6 +79,7 @@
 </div>
 </body>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script>
   Vue.component('item', {
@@ -73,69 +93,35 @@
     </li>`,
     computed: {
       isActive: function() {
-        return {'active': this.student.active}
+        return {'absent': this.student.absent}
       }
     },
     methods: {
       check: function() {
-        this.student.active = !this.student.active;
+        this.student.absent = !this.student.absent;
       }
     }
   })
 
-  Vue.component('list', {
-      props: {
-        name: String,
-        students: Array
-      },
-      template: `
-      <div class="students-list card col-11 col-md-9 col-lg-6 col-xl-5 mx-auto mt-2 p-0">
-        <div class="card-header py-3 d-flex justify-content-between">
-          <span class="title mx-0 my-auto">
-            {{ name }}
-          </span>
-          <div class="my-auto d-flex align-items-center">
-            <input type="date" class="form-control" value="2021-02-18" />
-          </div>
-        </div>
-        <div class="card-body text-right px-0 pt-0">
-          <ul class="list-group list-group-flush">
-            <item :student="student" v-for="student in students" :key="student.id"></item>
-          </ul>
-          <button @click="clear" class="mt-2 btn btn-danger mt-3">Очистить</button>
-          <button id="confirm" data-toggle="modal" data-target="#confirmationModal"
-            class="mt-2 btn btn-success ml-0 mr-2 mt-3">
-            Подтвердить
-          </button>
-        </div>
-      </div>`,
-      computed: {
-
-      },
-      methods: {
-        clear: function() {
-          this.students.forEach((item, i) => {
-            this.students[i].active = false;
-          });
-        }
-      }
-  });
-
   app = new Vue({
       el: "#app",
       data: {
-        name: "10А",
-        students: [
-          {name: "Ilya", id: 1, active: false},
-          {name: "Alex", id: 2, active: false},
-          {name: "Jack", id: 3, active: false},
-          {name: "Jeff", id: 4, active: false},
-          {name: "Carl", id: 5, active: false}
-        ]
+        name_example: "10А",
+        students_example: [
+          {name: "Ilya", id: 1, absent: false},
+          {name: "Alex", id: 2, absent: false},
+          {name: "Jack", id: 3, absent: false},
+          {name: "Jeff", id: 4, absent: false},
+          {name: "Carl", id: 5, absent: false}
+        ],
+        name: null,
+        students: [],
+        id: null,
+        date: null
       },
       computed: {
         getAbsent: function() {
-          var absent_students = this.students.filter(student => student.active);
+          var absent_students = this.students.filter(student => student.absent);
           var names = absent_students.map(student => student.name);
           if (names.length) {
             return "Отсутствуют: " + names.join(", ");
@@ -143,31 +129,79 @@
             return "Все присутствуют";
           }
         },
-        getAbsentIds: function() {
-          var absent_students = this.students.filter(student => student.active);
-          var ids = absent_students.map(student => student.id);
-          return ids;
+        prettyDate: function() {
+          const months = [
+            "янв",
+            "фев",
+            "мар",
+            "апр",
+            "мая",
+            "июн",
+            "июл",
+            "авг",
+            "сен",
+            "окт",
+            "ноя",
+            "дек"
+          ];
+          var date = new Date();
+          var formatted = "";
+          formatted += date.getDate();
+          formatted += " ";
+          formatted += months[date.getMonth()];
+          return formatted;
         }
+      },
+      methods: {
+        update: function() {
+          axios
+            .get('http://'+ window.location.host +'/api/day?group_id='+this.id+'&date='+this.date)
+            .then(response => (this.updateData(response.data)));
+        },
+        updateData: function(data) {
+          this.name = data.name;
+          this.id = data.id;
+          this.students = data.students;
+          this.students.sort(function (a, b) {
+            if (a.name == b.name)
+              return 0;
+            else if (a.name < b.name)
+              return -1;
+            else
+              return 1;
+          });
+        },
+        clear: function() {
+          this.students.forEach((item, i) => {
+            this.students[i].absent = false;
+          });
+        },
+        defaultInputDate: function() {
+          var today = new Date();
+          var dd = String(today.getDate()).padStart(2, '0');
+          var mm = String(today.getMonth() + 1).padStart(2, '0');
+          var yyyy = today.getFullYear();
+          today = yyyy + '-' + mm + '-' + dd;
+          return today;
+        }
+      },
+      watch: {
+        date: function(newVal, oldVal) {
+          this.update();
+        }
+      },
+      mounted() {
+        var params = (new URL(window.location.href)).searchParams;
+        this.id = params.get("id");
+        this.date = params.get("date");
+        if (!this.date)
+          this.date = this.defaultInputDate();
+        // this.update();
       }
-  })
+    })
 </script>
 
   <script>
-
-    // $("#confirm").click(function () {
-    //   body = $(".modal-body");
-    //   res = "Отсутствуют: ";
-    //
-    //   $("li.active").each(function(ind, el) {
-    //     res += $(el).text().trim() + ", ";
-    //   });
-    //   if ($("li.active").length)
-    //     res = res.substring(0, res.length-2);
-    //   else
-    //     res = "Все присутствуют";
-    //
-    //   $(body).text(res);
-    // });
 
     $("#sendButton").click(function () {
       // location.reload()

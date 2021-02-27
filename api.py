@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, make_response, abort, request
 from datetime import date, timedelta
 from db_init import *
+from request_parsers import GetDayParser
 
 
 api_blueprint = Blueprint("api", __name__,
@@ -34,3 +35,27 @@ def get_summary():
             group_json["days"]["yesterday"]["status"] = "empty"
         summary.append(group_json)
     return make_response(jsonify(summary), 200)
+
+
+@api_blueprint.route("/api/day", methods=["GET"])
+def get_day():
+    args = GetDayParser.parse_args()
+    db = db_session.create_session()
+    group = db.query(Group).filter(Group.id == args.group_id).first()
+    if group is None:
+        abort(404)
+    day = db.query(Day).filter(Day.group_id == args.group_id, Day.date == args.date).first()
+    try:
+        absent = day.absent
+    except AttributeError:
+        absent = []
+
+    return make_response(jsonify({
+        "name": str(group.number) + group.letter,
+        "id": group.id,
+        "students": [{
+            "name": st.surname + " " + st.name,
+            "id": st.id,
+            "absent": st.id in [a.id for a in absent]
+        } for st in group.students]
+    }), 200)

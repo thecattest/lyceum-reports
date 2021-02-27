@@ -58,7 +58,7 @@
                 {{ info.number }} {{ info.letter }}
               </span>
               <div class="my-2 d-flex align-items-center">
-                <a href="/day" class="action">
+                <a href="/summary" class="action">
                   подробнее
                 </a>
               </div>
@@ -67,25 +67,29 @@
               <div class="days">
                 <div class="day">
                   <div class="day-title">
-                    Сегодня <span class="date">{{ formatDate(info.days.today.date) }}</span>
+                    Сегодня <span class="date">{{ prettyDate(info.days.today.date) }}</span>
                   </div>
                   <div class="day-list pl-2">
                     <template v-if="info.days.today.status == 'ok'">
                       {{ formatAbsent(this.info.days.today.students) }}
                     </template>
-                    <a v-else-if="info.days.today.status == 'empty'" href="/day" class="action">заполнить</a>
+                    <a v-else-if="info.days.today.status == 'empty'"
+                      :href="link(info.days.today.date)" class="action"
+                    >заполнить</a>
                   </div>
                 </div>
                 <hr class="between-days">
                 <div class="day">
                   <div class="day-title">
-                    Вчера <span class="date">{{ formatDate(info.days.yesterday.date) }}</span>
+                    Вчера <span class="date">{{ prettyDate(info.days.yesterday.date) }}</span>
                   </div>
                   <div class="day-list pl-2">
                     <template v-if="info.days.yesterday.status == 'ok'">
                       {{ formatAbsent(this.info.days.yesterday.students) }}
                     </template>
-                    <a v-else-if="info.days.yesterday.status == 'empty'" href="/day" class="action">заполнить</a>
+                    <a v-else-if="info.days.yesterday.status == 'empty'"
+                      :href="link(info.days.yesterday.date)" class="action"
+                    >заполнить</a>
                   </div>
                 </div>
               </div>
@@ -102,6 +106,21 @@
           return students.length ? students.join(", ") : this.everybody;
         },
         formatDate: function(date) {
+          var today = new Date(date);
+          var dd = String(today.getDate()).padStart(2, '0');
+          var mm = String(today.getMonth() + 1).padStart(2, '0');
+          var yyyy = today.getFullYear();
+          today = yyyy + '-' + mm + '-' + dd;
+          return today;
+        },
+        link: function(date) {
+          var link = '/day?id=';
+          link += this.info.id;
+          link += '&date=';
+          link += this.formatDate(date)
+          return link;
+        },
+        prettyDate: function(date) {
           const months = [
             "янв",
             "фев",

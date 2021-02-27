@@ -45,7 +45,7 @@
   font-size: 18px;
 }
 
-.list-group-item.active {
+.list-group-item.absent {
   background-color: #408dde;
   border-color: #408dde;
 }
@@ -56,7 +56,7 @@
   border-bottom-right-radius: 15px !important;*/
 }
 
-.student.active .student-check {
+.student.absent .student-check {
   display: inline-block;
 }
 

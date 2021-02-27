@@ -16,8 +16,10 @@ def main():
     app.register_blueprint(api_blueprint)
 
     port = int(os.environ.get("PORT", 8000))
-    app.run(host='0.0.0.0', port=port)
-    # app.run()
+    host = "0.0.0.0"
+    # from waitress import serve
+    # serve(app, host=host, port=port)
+    app.run(host=host, port=port)
 
 
 def root_dir():
