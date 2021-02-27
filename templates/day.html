@@ -155,7 +155,7 @@
       methods: {
         update: function() {
           axios
-            .get('http://'+ window.location.host +'/api/day?group_id='+this.id+'&date='+this.date)
+            .get('http://'+ window.location.host +'/api/day/'+this.id+'?date='+this.date)
             .then(response => (this.updateData(response.data)));
         },
         updateData: function(data) {

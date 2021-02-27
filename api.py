@@ -37,14 +37,14 @@ def get_summary():
     return make_response(jsonify(summary), 200)
 
 
-@api_blueprint.route("/api/day", methods=["GET"])
-def get_day():
+@api_blueprint.route("/api/day/<int:group_id>", methods=["GET"])
+def get_day(group_id):
     args = GetDayParser.parse_args()
     db = db_session.create_session()
-    group = db.query(Group).filter(Group.id == args.group_id).first()
+    group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
-    day = db.query(Day).filter(Day.group_id == args.group_id, Day.date == args.date).first()
+    day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     try:
         absent = day.absent
     except AttributeError:
@@ -59,3 +59,8 @@ def get_day():
             "absent": st.id in [a.id for a in absent]
         } for st in group.students]
     }), 200)
+
+
+@api_blueprint.route("/api/day", methods=["POST"])
+def update_day():
+    pass
