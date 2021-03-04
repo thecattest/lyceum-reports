@@ -47,12 +47,15 @@ def get_day(group_id):
     day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     try:
         absent = day.absent
+        status = 'ok'
     except AttributeError:
         absent = []
+        status = 'empty'
 
     return make_response(jsonify({
         "name": str(group.number) + group.letter,
         "id": group.id,
+        "status": status,
         "students": [{
             "name": st.surname + " " + st.name,
             "id": st.id,
