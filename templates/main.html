@@ -13,11 +13,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;1,600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;200;300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/b441ffabfb.js" crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="../static/style.css">
 
-  <title>Сводка</title>
+  <title>Отсутствующие</title>
 
   <style>
 
@@ -26,13 +27,18 @@
 </head>
 <body>
 
-  <div class="container-fluid px-0 px-md-4" id="app">
-    <div class="row">
+  <div class="row mb-1">
+    <div class="col-12">
+      <div class="header w-100">Отсутствующие</div>
+    </div>
+  </div>
 
+  <div class="container-fluid px-0 px-md-4" id="app">
+
+    <div class="row">
       <template v-for="info in classes">
         <class-card :info="info"></class-card>
       </template>
-
     </div>
   </div>
 
@@ -59,7 +65,7 @@
               </span>
               <div class="my-2 d-flex align-items-center">
                 <a :href="editLink" class="action">
-                  подробнее
+                  редактировать
                 </a>
               </div>
             </div>
@@ -151,57 +157,7 @@
   app = new Vue({
       el: "#app",
       data: {
-          classes_example: [
-            {name: "11А", fullInfoLink: "#", days: {
-              today: {
-                students: "",
-                link: "#",
-                date: "17 фев"
-              },
-              yesterday: {
-                students: "Петров, Иванов, Марьин",
-                link: "#",
-                date: "16 фев"
-              }
-            }},
-            {name: "10В", fullInfoLink: "#", days: {
-              today: {
-                students: "Иванов, Макаров, Сидоров",
-                link: "#",
-                date: "17 фев"
-              },
-              yesterday: {
-                students: "Сидоров",
-                link: "#",
-                date: "16 фев"
-              }
-            }},
-            {name: "10Г", fullInfoLink: "#", days: {
-              today: {
-                students: "",
-                link: "#",
-                date: "17 фев"
-              },
-              yesterday: {
-                students: "",
-                link: "#",
-                date: "16 фев"
-              }
-            }},
-            {name: "9А", fullInfoLink: "#", days: {
-              today: {
-                students: "Димченко",
-                link: "#",
-                date: "17 фев"
-              },
-              yesterday: {
-                students: "Все присутствуют",
-                link: "#",
-                date: "16 фев"
-              }
-            }},
-          ],
-          classes: null
+        classes: null
       },
       mounted() {
         axios

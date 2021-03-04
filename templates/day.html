@@ -15,6 +15,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;1,600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;200;300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
   <script src="https://kit.fontawesome.com/b441ffabfb.js" crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="../static/style.css">
@@ -30,7 +32,16 @@
 <body>
 <div id="app">
 
+  <div class="row mb-1">
+    <div class="col-12">
+      <div class="header w-100">Отсутствуют:</div>
+    </div>
+  </div>
+
   <div class="container-fluid p-2">
+    <div class="alert alert-dismissible fade show" v-if="alert != null" :class="alert.type">
+      {{ alert.text }}
+    </div>
     <div class="row">
       <div class="students-list card col-11 col-md-9 col-lg-6 col-xl-5 mx-auto mt-2 p-0">
         <div class="card-header py-3 d-flex justify-content-between">
@@ -45,10 +56,10 @@
           <ul class="list-group list-group-flush">
             <item :student="student" v-for="student in students" :key="student.id"></item>
           </ul>
-          <button @click="clear" class="mt-2 btn btn-danger mt-3">Очистить</button>
+          <button @click="clear" class="mt-2 btn btn-danger">Очистить</button>
           <button id="confirm" data-toggle="modal" data-target="#confirmationModal"
-            class="mt-2 btn btn-success ml-0 mr-2 mt-3">
-            Подтвердить
+            :disabled="disableUpdate" class="mt-2 btn btn-success ml-0 mr-2">
+            {{ updateButtonText }}
           </button>
         </div>
       </div>
@@ -70,7 +81,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-          <button type="button" id="sendButton" @click="send" class="btn btn-success">Отправить</button>
+          <button type="button" id="sendButton" @click="send" class="btn btn-success">{{ updateButtonText }}</button>
         </div>
       </div>
     </div>
@@ -94,7 +105,7 @@
     template: `
       <li @click="check" class="student list-group-item d-flex justify-content-between" :class="isAbsent">
         {{ student.name }}
-        <i class="fas fa-times student-check mt-1"></i>
+        <i class="fas fa-check fa-sm student-check mt-1 mr-2"></i>
       </li>`,
     computed: {
       isAbsent: function() {
@@ -111,18 +122,12 @@
   app = new Vue({
       el: "#app",
       data: {
-        name_example: "10А",
-        students_example: [
-          {name: "Ilya", id: 1, absent: false},
-          {name: "Alex", id: 2, absent: false},
-          {name: "Jack", id: 3, absent: false},
-          {name: "Jeff", id: 4, absent: false},
-          {name: "Carl", id: 5, absent: false}
-        ],
         name: null,
         students: [],
         id: null,
-        date: null
+        date: null,
+        loadedAbsent: null,
+        alert: null,
       },
       computed: {
         getAbsent: function() {
@@ -136,20 +141,24 @@
         },
         prettyDate: function() {
           const months = [
-            "янв",
-            "фев",
-            "мар",
-            "апр",
+            "января",
+            "февраля",
+            "марта",
+            "апреля",
             "мая",
-            "июн",
-            "июл",
-            "авг",
-            "сен",
-            "окт",
-            "ноя",
-            "дек"
+            "июня",
+            "июля",
+            "августа",
+            "сентября",
+            "октября",
+            "ноября",
+            "декабря"
           ];
-          var date = new Date();
+          if (this.date == null) {
+            var date = new Date();
+          } else {
+            var date = new Date(this.date);
+          }
           var formatted = "";
           formatted += date.getDate();
           formatted += " ";
@@ -160,14 +169,19 @@
           return 'http://'+ window.location.host +'/api/day/'+this.id;
         },
         absentIds: function() {
-          var absent_students = this.students.filter(student => student.absent);
-          var ids = absent_students.map(student => student.id);
-          console.log(ids);
-          return ids.join(",");
-        }
+          return this.getAbsentIds(this.students).join(",");
+        },
+        disableUpdate: function() {
+          var currentIds = this.getAbsentIds(this.students);
+          return this.arraysEqual(currentIds, this.loadedAbsent) &&
+            currentIds.length != 0;
+        },
+        updateButtonText: function() {
+          return this.absentIds != "" ? "Отправить" : "Все в классе";
+        },
       },
       methods: {
-        update: function() {
+        loadData: function() {
           axios
             .get('http://'+ window.location.host +'/api/day/'+this.id+'?date='+this.date)
             .then(response => (this.updateData(response.data)));
@@ -176,6 +190,17 @@
           this.name = data.name;
           this.id = data.id;
           this.students = data.students;
+          if (data.status == "ok") {
+            this.alert = {
+              text: "Загружены данные за " + this.prettyDate,
+              type: "alert-success"
+            }
+          } else {
+            this.alert = {
+              text: "Данных за " + this.prettyDate + " нет",
+              type: "alert-warning"
+            }
+          }
           this.students.sort(function (a, b) {
             if (a.name == b.name)
               return 0;
@@ -184,6 +209,7 @@
             else
               return 1;
           });
+          this.loadedAbsent = this.getAbsentIds(data.students);
         },
         clear: function() {
           this.students.forEach((item, i) => {
@@ -198,13 +224,32 @@
           today = yyyy + '-' + mm + '-' + dd;
           return today;
         },
+        getAbsentIds: function(students) {
+          var absent_students = students.filter(student => student.absent);
+          var ids = absent_students.map(student => student.id);
+          console.log(ids);
+          return ids;
+        },
         send: function() {
           $("form").submit();
+        },
+        arraysEqual: function(a, b) {
+          if (a === b) return true;
+          if (a == null || b == null) return false;
+          if (a.length !== b.length) return false;
+
+          a.sort();
+          b.sort();
+
+          for (var i = 0; i < a.length; ++i) {
+            if (a[i] !== b[i]) return false;
+          }
+          return true;
         }
       },
       watch: {
         date: function(newVal, oldVal) {
-          this.update();
+          this.loadData();
         }
       },
       mounted() {
@@ -213,7 +258,6 @@
         this.date = params.get("date");
         if (!this.date)
           this.date = this.defaultInputDate();
-        // this.update();
       }
     })
 </script>

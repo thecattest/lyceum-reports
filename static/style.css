@@ -2,6 +2,14 @@
   font-family: 'Roboto Mono', monospace;
 } */
 
+.header {
+  padding: 10px;
+  padding-left: 20px;
+  font-size: 36px;
+  font-family: 'Lato', sans-serif;
+  background-color: #c6c1ea; /*#aaa5d2;*/
+}
+
 .title {
   font-size: 30px;
   font-family: "Open Sans", sans-serif;
@@ -46,8 +54,10 @@
 }
 
 .list-group-item.absent {
-  background-color: #408dde;
-  border-color: #408dde;
+  /* background-color: #408dde;
+  border-color: #408dde; */
+  background-color: #eac1c1;
+  /* border-color: #eac1c1; */
 }
 
 .students-list{
@@ -62,6 +72,8 @@
 
 .student {
   cursor: pointer;
+  padding: 10px;
+  padding-left: 15px;
 }
 
 .student-check {
