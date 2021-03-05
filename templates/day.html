@@ -34,7 +34,12 @@
 
   <div class="row mb-1">
     <div class="col-12">
-      <div class="header w-100">Отсутствуют:</div>
+      <div class="header w-100">
+        Отсутствуют:
+        <a href="/summary" class="action back">
+          <i class="fas fa-arrow-left"></i> на главную
+        </a>
+      </div>
     </div>
   </div>
 
@@ -49,7 +54,7 @@
             {{ name }}
           </span>
           <div class="my-auto d-flex align-items-center">
-            <input type="date" class="form-control" v-model:value="date" />
+            <input type="date" class="form-control" v-model:value="date"/>
           </div>
         </div>
         <div class="card-body text-right px-0 pt-0">
@@ -245,7 +250,7 @@
             if (a[i] !== b[i]) return false;
           }
           return true;
-        }
+        },
       },
       watch: {
         date: function(newVal, oldVal) {
