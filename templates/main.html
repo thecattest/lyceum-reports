@@ -63,9 +63,9 @@
               <span class="title mx-0 my-auto">
                 {{ info.number }} {{ info.letter }}
               </span>
-              <div class="my-2 d-flex align-items-center">
-                <a :href="editLink" class="action">
-                  редактировать
+              <div class="my-2">
+                <a :href="moreInfoLink" class="action">
+                  подробнее
                 </a>
               </div>
             </div>
@@ -108,6 +108,9 @@
           },
           editLink: function() {
             return '/day?id=' + this.info.id;
+          },
+          moreInfoLink: function() {
+            return '/summary/group?id=' + this.info.id;
           }
       },
       methods: {

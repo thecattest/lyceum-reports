@@ -83,3 +83,11 @@
 .back {
   font-size: 14px;
 }
+
+.no-data {
+  background-color: #eee;
+}
+
+.day-row {
+  font-size: 0.9rem;
+}

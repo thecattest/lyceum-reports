@@ -7,6 +7,10 @@ from request_parsers import GetDayParser, UpdateDayParser
 api_blueprint = Blueprint("api", __name__,
                           template_folder="templates")
 
+STATUS = 'status'
+OK = 'ok'
+EMPTY = 'empty'
+
 
 @api_blueprint.route("/api/summary")
 def get_summary():
@@ -23,16 +27,16 @@ def get_summary():
         }
         try:
             today_absent = db.query(Day).filter(Day.group == g, Day.date == today).first().absent
-            group_json["days"]["today"]["status"] = "ok"
+            group_json["days"]["today"][STATUS] = OK
             group_json["days"]["today"]["students"] = [st.surname for st in today_absent]
         except AttributeError:
-            group_json["days"]["today"]["status"] = "empty"
+            group_json["days"]["today"][STATUS] = EMPTY
         try:
             yesterday_absent = db.query(Day).filter(Day.group == g, Day.date == yesterday).first().absent
-            group_json["days"]["yesterday"]["status"] = "ok"
+            group_json["days"]["yesterday"][STATUS] = OK
             group_json["days"]["yesterday"]["students"] = [st.surname for st in yesterday_absent]
         except AttributeError:
-            group_json["days"]["yesterday"]["status"] = "empty"
+            group_json["days"]["yesterday"][STATUS] = EMPTY
         summary.append(group_json)
     return make_response(jsonify(summary), 200)
 
@@ -47,15 +51,15 @@ def get_day(group_id):
     day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     try:
         absent = day.absent
-        status = 'ok'
+        status = OK
     except AttributeError:
         absent = []
-        status = 'empty'
+        status = EMPTY
 
     return make_response(jsonify({
         "name": str(group.number) + group.letter,
         "id": group.id,
-        "status": status,
+        STATUS: status,
         "students": [{
             "name": st.surname + " " + st.name,
             "id": st.id,
@@ -90,3 +94,31 @@ def update_day(group_id):
         day.absent.append(student)
     db.commit()
     return redirect("/")
+
+
+@api_blueprint.route("/api/summary/group/<int:group_id>", methods=["GET"])
+def get_group_summary(group_id):
+    db = db_session.create_session()
+    group = db.query(Group).get(group_id)
+    if group is None:
+        abort(404)
+    today = date.today()
+    td = timedelta(days=1)
+    days = [{
+        "date": (today-(td*i)).strftime("%Y-%m-%d"),
+        "status": '',
+        "students": []
+    } for i in range(50)]
+
+    for i in range(len(days)):
+        dt = days[i]["date"]
+        day = db.query(Day).filter(Day.date == dt, Day.group_id == group_id).first()
+        if day is None:
+            days[i][STATUS] = EMPTY
+        else:
+            days[i][STATUS] = OK
+            days[i]["students"] = [st.surname for st in day.absent]
+    return jsonify({
+        "name": str(group.number) + group.letter,
+        "days": days
+    })

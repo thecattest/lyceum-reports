@@ -51,5 +51,10 @@ def day():
     return send_html("day.html")
 
 
+@app.route("/summary/group")
+def summary_group():
+    return send_html("table.html")
+
+
 if __name__ == '__main__':
     main()
