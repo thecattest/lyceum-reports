@@ -4,3 +4,4 @@ Flask-RESTful==0.3.8
 SQLAlchemy==1.3.23
 SQLAlchemy-serializer==1.3.4.4
 waitress==1.4.4
+PyMySQL==1.0.2
