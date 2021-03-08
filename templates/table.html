@@ -16,6 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;1,600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;200;300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
 
   <script src="https://kit.fontawesome.com/b441ffabfb.js" crossorigin="anonymous"></script>
 
@@ -51,10 +52,10 @@
 
       <div class="students-list card col-11 col-md-9 col-lg-7 mx-auto mt-2 p-0">
         <div class="card-header py-3 d-flex justify-content-between">
-          <span class="title mx-0 my-auto">
+          <span class="title mx-0 my-auto" :class="titleClass">
             {{ title }}
           </span>
-          <div v-if="type=='day'" class="my-auto d-flex align-items-center">
+          <div v-if="type=='day'" class="my-auto">
             <input type="date" class="form-control" v-model:value="date" @change="redirect"/>
           </div>
         </div>
@@ -124,6 +125,9 @@
       computed: {
         typeTitle: function() {
           return this.type == 'group' ? 'класс' : 'день';
+        },
+        titleClass: function() {
+          return this.type == 'group' ? '' : 'day-title';
         }
       },
       methods: {
