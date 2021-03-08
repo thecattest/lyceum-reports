@@ -27,13 +27,20 @@
 </head>
 <body>
 
+<div id="app">
+
   <div class="row mb-1">
     <div class="col-12">
-      <div class="header w-100">Отсутствующие</div>
+      <div class="header w-100">
+        Отсутствующие <br class="d-md-none">
+        <a :href="dayLink" class="action header-link">
+          таблица
+        </a>
+      </div>
     </div>
   </div>
 
-  <div class="container-fluid px-0 px-md-4" id="app">
+  <div class="container-fluid px-0 px-md-4">
 
     <div class="row">
       <template v-for="info in classes">
@@ -41,6 +48,8 @@
       </template>
     </div>
   </div>
+
+</div>
 
 </body>
 
@@ -63,10 +72,17 @@
               <span class="title mx-0 my-auto">
                 {{ info.number }} {{ info.letter }}
               </span>
-              <div class="my-2">
-                <a :href="moreInfoLink" class="action">
-                  подробнее
-                </a>
+              <div class="my-auto text-right">
+                <div>
+                  <a :href="moreInfoLink" class="action">
+                    подробнее
+                  </a>
+                </div>
+                <div>
+                  <a :href="editLink" class="action">
+                    дополнить
+                  </a>
+                </div>
               </div>
             </div>
             <div class="card-body">
@@ -161,6 +177,16 @@
       el: "#app",
       data: {
         classes: null
+      },
+      computed: {
+        dayLink: function() {
+          var today = new Date();
+          var dd = String(today.getDate()).padStart(2, '0');
+          var mm = String(today.getMonth() + 1).padStart(2, '0');
+          var yyyy = today.getFullYear();
+          today = yyyy + '-' + mm + '-' + dd;
+          return '/summary/day?date=' + today;
+        }
       },
       mounted() {
         axios

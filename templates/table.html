@@ -35,8 +35,8 @@
   <div class="row mb-1">
     <div class="col-12">
       <div class="header w-100">
-         Отсутствующие {{ name }} <br class="d-md-none">
-        <a href="/summary" class="action back">
+         Отсутствующие: {{ typeTitle }} <br class="d-md-none">
+        <a href="/summary" class="action header-link">
           <i class="fas fa-arrow-left"></i> на главную
         </a>
       </div>
@@ -50,9 +50,17 @@
     <div class="row">
 
       <div class="students-list card col-11 col-md-9 col-lg-7 mx-auto mt-2 p-0">
-        <div class="card-body px-0 pt-0">
+        <div class="card-header py-3 d-flex justify-content-between">
+          <span class="title mx-0 my-auto">
+            {{ title }}
+          </span>
+          <div v-if="type=='day'" class="my-auto d-flex align-items-center">
+            <input type="date" class="form-control" v-model:value="date" @change="redirect"/>
+          </div>
+        </div>
+        <div class="card-body px-0 py-0">
           <ul class="list-group list-group-flush">
-            <row :day="day" v-for="day in days" :key="day.date"></item>
+            <row :info="row" :hint="getHint(row)" v-for="row in rows" :key="row.date"></item>
           </ul>
         </div>
       </div>
@@ -68,13 +76,14 @@
 <script>
   Vue.component('row', {
     props: {
-      day: Object
+      hint: String,
+      info: Object
     },
     template: `
       <li class="day-row list-group-item" :class=noData>
         <div class="row">
-          <div class="col-auto date">
-            {{ prettyDate(day.date) }}
+          <div class="col-auto date" :class="getType">
+            {{ hint }}
           </div>
           <div class="col students text-right">
             <span>
@@ -85,43 +94,20 @@
       </li>`,
     computed: {
       students: function() {
-        if(this.day.status == 'empty') {
+        if(this.info.status == 'empty') {
           return 'Нет данных';
         }
-        else if(!this.day.students.length) {
+        else if(!this.info.students.length) {
           return 'Все присутствуют';
         } else {
-          return this.day.students.join(", ");
+          return this.info.students.join(", ");
         }
       },
+      getType: function() {
+        return window.location.pathname == '/summary/group' ? '' : 'hint-title';
+      },
       noData: function() {
-        return this.day.status == 'empty' ? 'no-data' : '';
-      }
-    },
-    methods: {
-      prettyDate: function(date) {
-        const months = [
-          "января",
-          "февраля",
-          "марта",
-          "апреля",
-          "мая",
-          "июня",
-          "июля",
-          "августа",
-          "сентября",
-          "октября",
-          "ноября",
-          "декабря"
-        ];
-        var date = new Date(date);
-        var formatted = "";
-        formatted += date.getDate();
-        formatted += " ";
-        formatted += months[date.getMonth()];
-        formatted += " ";
-        formatted += date.getFullYear();
-        return formatted;
+        return this.info.status == 'empty' ? 'no-data' : '';
       }
     }
   })
@@ -130,26 +116,81 @@
       el: "#app",
       data: {
         id: null,
-        days: null,
-        name: null,
+        date: null,
+        rows: null,
+        title: null,
+        type: null,
       },
       computed: {
-
+        typeTitle: function() {
+          return this.type == 'group' ? 'класс' : 'день';
+        }
       },
       methods: {
         loadData: function() {
-          axios
-            .get('http://'+ window.location.host +'/api/summary/group/'+this.id)
-            .then(response => (this.updateData(response.data)));
+          if (this.type == 'group') {
+            axios
+              .get('http://'+ window.location.host +'/api/summary/group/'+this.id)
+              .then(response => (this.updateData(response.data)));
+            } else {
+              axios
+                .get('http://'+ window.location.host +'/api/summary/day/'+this.date)
+                .then(response => (this.updateData(response.data)));
+            }
         },
         updateData: function(data) {
-          this.days = data.days;
-          this.name = data.name;
+          if (this.type == 'group') {
+            this.rows = data.days;
+            this.title = data.name;
+          } else {
+            this.rows = data.groups;
+            this.title = this.prettyDate(data.date);
+          }
+        },
+        redirect: function() {
+          window.location.href = '/summary/day?date=' + this.date;
+        },
+        prettyDate: function(date) {
+          const months = [
+            "января",
+            "февраля",
+            "марта",
+            "апреля",
+            "мая",
+            "июня",
+            "июля",
+            "августа",
+            "сентября",
+            "октября",
+            "ноября",
+            "декабря"
+          ];
+          var date = new Date(date);
+          var formatted = "";
+          formatted += date.getDate();
+          formatted += " ";
+          formatted += months[date.getMonth()];
+          formatted += " ";
+          formatted += date.getFullYear();
+          return formatted;
+        },
+        getHint: function(info) {
+          if(this.type == 'group') {
+            return this.prettyDate(info.date);
+          } else {
+            return info.name;
+          }
         }
       },
       mounted() {
+        if (window.location.pathname == '/summary/group') {
+          this.type = 'group';
+        } else {
+          this.type = 'day';
+        }
         var params = (new URL(window.location.href)).searchParams;
         this.id = params.get("id");
+        this.date = params.get("date");
         this.loadData();
       }
     })

@@ -118,7 +118,29 @@ def get_group_summary(group_id):
         else:
             days[i][STATUS] = OK
             days[i]["students"] = [st.surname for st in day.absent]
-    return jsonify({
+    return make_response(jsonify({
         "name": str(group.number) + group.letter,
         "days": days
-    })
+    }), 200)
+
+
+@api_blueprint.route("/api/summary/day/<dt>")
+def get_day_summary(dt):
+    db = db_session.create_session()
+    groups = [{
+        "id": g.id,
+        "name": str(g.number) + g.letter,
+        "status": '',
+        "students": []
+    } for g in db.query(Group).all()]
+    for i in range(len(groups)):
+        day = db.query(Day).filter(Day.date == dt, Day.group_id == groups[i]["id"]).first()
+        if day is None:
+            groups[i][STATUS] = EMPTY
+        else:
+            groups[i][STATUS] = OK
+            groups[i]["students"] = [st.surname for st in day.absent]
+    return make_response(jsonify({
+        "date": dt,
+        "groups": groups
+    }), 200)

@@ -5,13 +5,13 @@
 .header {
   padding: 10px;
   padding-left: 20px;
-  font-size: 36px;
+  font-size: 34px;
   font-family: 'Lato', sans-serif;
   background-color: #c6c1ea; /*#aaa5d2;*/
 }
 
 .title {
-  font-size: 30px;
+  font-size: 32px;
   font-family: "Open Sans", sans-serif;
 }
 
@@ -80,7 +80,7 @@
   display: none;
 }
 
-.back {
+.header-link {
   font-size: 14px;
 }
 
@@ -90,4 +90,8 @@
 
 .day-row {
   font-size: 0.9rem;
+}
+
+.hint-title {
+  font-size: 18px;
 }
