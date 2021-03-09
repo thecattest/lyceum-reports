@@ -18,7 +18,7 @@ def global_init(db_file, username, password):
         raise Exception("Specify db file")
 
     # conn_str = f'sqlite:///{db_file.strip()}?check_same_thread=False'
-    conn_str = f'mysql+pymysql://{username}:{password}@92.53.124.98/{db_file}'
+    conn_str = f'mysql+pymysql://{username}:{password}@92.53.124.98/{db_file}?charset=utf8'
     print(f"Connecting {conn_str}")
 
     engine = sa.create_engine(conn_str, echo=False)
