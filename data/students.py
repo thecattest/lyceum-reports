@@ -9,8 +9,8 @@ class Student(SqlAlchemyBase, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    surname = sqlalchemy.Column(sqlalchemy.String, unique=False, nullable=False)
-    name = sqlalchemy.Column(sqlalchemy.String, unique=False, nullable=False)
+    surname = sqlalchemy.Column(sqlalchemy.String(100), unique=False, nullable=False)
+    name = sqlalchemy.Column(sqlalchemy.String(100), unique=False, nullable=False)
     group_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("groups.id"))
 
     group = orm.relation("Group")

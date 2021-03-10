@@ -8,7 +8,7 @@ SqlAlchemyBase = dec.declarative_base()
 __factory = None
 
 
-def global_init(db_file):
+def global_init(db_file, username, password):
     global __factory
 
     if __factory:
@@ -17,7 +17,8 @@ def global_init(db_file):
     if not db_file or not db_file.strip():
         raise Exception("Specify db file")
 
-    conn_str = f'sqlite:///{db_file.strip()}?check_same_thread=False'
+    # conn_str = f'sqlite:///{db_file.strip()}?check_same_thread=False'
+    conn_str = f'mysql+pymysql://{username}:{password}@92.53.124.98/{db_file}?charset=utf8'
     print(f"Connecting {conn_str}")
 
     engine = sa.create_engine(conn_str, echo=False)

@@ -10,7 +10,7 @@ class Group(SqlAlchemyBase, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     number = sqlalchemy.Column(sqlalchemy.Integer, unique=False, nullable=False)
-    letter = sqlalchemy.Column(sqlalchemy.String, unique=False, nullable=False)
+    letter = sqlalchemy.Column(sqlalchemy.String(3), unique=False, nullable=False)
 
     students = orm.relation("Student", back_populates="group")
     days = orm.relation("Day", back_populates="group")
