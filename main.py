@@ -17,9 +17,9 @@ def main():
 
     port = int(os.environ.get("PORT", 8000))
     host = "0.0.0.0"
-    # from waitress import serve
-    # serve(app, host=host, port=port)
-    app.run(host=host, port=port)
+    from waitress import serve
+    serve(app, host=host, port=port)
+    # app.run(host=host, port=port)
 
 
 def root_dir():
