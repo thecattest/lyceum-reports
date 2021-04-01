@@ -12,11 +12,12 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'lyceum_reports_the_best'
 # CORS(app)
 
+app.register_blueprint(api_blueprint)
+
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.unauthorized_handler(callback=(lambda: redirect('/login')))
-
-app.register_blueprint(api_blueprint)
 
 
 @login_manager.user_loader
@@ -24,6 +25,39 @@ def load_user(user_id):
     db = db_session.create_session()
     db.expire_on_commit = False
     return db.query(User).get(user_id)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login_handler():
+    if current_user.is_authenticated:
+        return redirect("/")
+    if request.method == "POST":
+        form_data = request.form
+        form_login = form_data["login"]
+        form_password = form_data["password"]
+        db = db_session.create_session()
+        form_user = db.query(User).filter(User.login == form_login).first()
+        if form_user:
+            if form_user.check_password(form_password):
+                login_user(form_user, True)
+                return redirect("/")
+            else:
+                return render_template("login.html",
+                                       alert_title="Ой",
+                                       alert_text="Вы ввели неправильный пароль",
+                                       login=form_login)
+        else:
+            return render_template("login.html",
+                                   alert_title="Ой",
+                                   alert_text="Вы ввели несуществующий логин")
+    return render_template("login.html")
+
+
+@app.route("/logout")
+@login_required
+def logout_handler():
+    logout_user()
+    return redirect("/login")
 
 
 def root_dir():
