@@ -5,8 +5,8 @@ from data.__all_models import *
 from data.types import MYSQL, SQLITE
 
 
-# TYPE = MYSQL
-TYPE = SQLITE
+TYPE = MYSQL
+# TYPE = SQLITE
 
 
 def connect(type):
