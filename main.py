@@ -15,11 +15,12 @@ def main():
 
 @app.route("/login", methods=["GET", "POST"])
 def login_handler():
+    if current_user.is_authenticated:
+        return redirect("/")
     if request.method == "POST":
         form_data = request.form
         form_login = form_data["login"]
         form_password = form_data["password"]
-        print(form_login, form_password)
         db = db_session.create_session()
         form_user = db.query(User).filter(User.login == form_login).first()
         if form_user:
@@ -42,7 +43,7 @@ def login_handler():
 @login_required
 def logout_handler():
     logout_user()
-    return redirect("/")
+    return redirect("/login")
 
 
 @app.route("/")
