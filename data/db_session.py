@@ -29,7 +29,7 @@ def global_init(db_file, type, username=None, password=None):
     engine = sa.create_engine(conn_str, echo=False)
     __factory = orm.sessionmaker(bind=engine)
 
-    from . import __all_models
+    from data import __all_models
 
     SqlAlchemyBase.metadata.create_all(engine)
 
