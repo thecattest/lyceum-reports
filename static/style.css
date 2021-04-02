@@ -119,3 +119,7 @@ body {
     outline: none!important;
     box-shadow: 0px 0px 0 0.3rem rgb(130 130 130);
 }
+
+.error {
+    background-color: #eac1c1;
+}
