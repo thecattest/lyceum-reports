@@ -114,6 +114,9 @@ def update_day(group_id):
 
 @api_blueprint.route("/api/summary/group/<int:group_id>", methods=["GET"])
 def get_group_summary(group_id):
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
     if group is None:
@@ -142,6 +145,9 @@ def get_group_summary(group_id):
 
 @api_blueprint.route("/api/summary/day/<dt>")
 def get_day_summary(dt):
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     db = db_session.create_session()
     groups = [{
         "id": g.id,
