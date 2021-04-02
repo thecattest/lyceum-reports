@@ -123,3 +123,12 @@ body {
 .error {
     background-color: #eac1c1;
 }
+
+.logout-link {
+    color: #ff0000;
+}
+
+.logout-link:hover {
+  background-color: #de4040;
+  /*408dde*/
+}
