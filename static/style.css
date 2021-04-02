@@ -97,14 +97,15 @@ body {
   font-size: 18px;
 }
 
-.form-control:focus {
+#login:focus, #password:focus {
     border: 2px solid black;
     outline: none!important;
     box-shadow: 7px 7px 0 0.2rem rgb(170 170 170);
 }
 
-.form-control {
+#login, #password {
     border: 1px solid black;
+    font-weight: 600;
     border-radius: 0;
     box-shadow: 7px 7px 0 0.2rem rgb(170 170 170);
 }
