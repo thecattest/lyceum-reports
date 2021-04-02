@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, make_response, abort, redirect
 from datetime import date, timedelta, datetime
 from db_init import *
 from request_parsers import GetDayParser, UpdateDayParser
+from app_config import current_user
 
 
 api_blueprint = Blueprint("api", __name__,
@@ -12,8 +13,17 @@ OK = 'ok'
 EMPTY = 'empty'
 
 
+def check_user_authenticated():
+    if not current_user.is_authenticated:
+        return False, make_response(jsonify({"error": "not authenticated"}), 403)
+    return True, None
+
+
 @api_blueprint.route("/api/summary")
 def get_summary():
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     db = db_session.create_session()
     groups = db.query(Group).all()
     summary = []
@@ -43,6 +53,9 @@ def get_summary():
 
 @api_blueprint.route("/api/day/<int:group_id>", methods=["GET"])
 def get_day(group_id):
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     args = GetDayParser.parse_args()
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
@@ -70,6 +83,9 @@ def get_day(group_id):
 
 @api_blueprint.route("/api/day/<int:group_id>", methods=["POST"])
 def update_day(group_id):
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     args = UpdateDayParser.parse_args()
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
