@@ -16,21 +16,25 @@ def main():
 @app.route("/")
 @app.route("/summary")
 @app.route("/index")
+@login_required
 def summary():
     return send_html("main.html")
 
 
 @app.route("/day")
+@login_required
 def day():
     return send_html("day.html")
 
 
 @app.route("/summary/group")
+@login_required
 def summary_group():
     return send_html("table.html")
 
 
 @app.route("/summary/day")
+@login_required
 def summary_day():
     return send_html("table.html")
 
