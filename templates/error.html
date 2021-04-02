@@ -31,8 +31,8 @@
     <div class="row mb-1">
       <div class="col-12">
         <div class="header error text-center w-100">
-          Ошибка
-          <h4>{{ text }}</h4>
+          <h1 class="mb-0">Ошибка</h1>
+          <h4>{{ text }} {% if link %}<a class="action" href="{{ link }}">вернуться</a>{% endif %}</h4>
         </div>
       </div>
     </div>
