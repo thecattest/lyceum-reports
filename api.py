@@ -55,7 +55,8 @@ def get_summary():
         summary.append(group_json)
     response = {
         "summary": summary, 
-        "can_edit": current_user.role != current_user.TYPE.VIEWER
+        "can_edit": current_user.role != current_user.TYPE.VIEWER,
+        "can_view_table": current_user.role != current_user.TYPE.EDITOR
     }
     return make_response(jsonify(response), 200)
 
@@ -70,6 +71,8 @@ def get_day(group_id):
     group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
+    if current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id != group.id:
+        abort(403)
     day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     try:
         absent = day.absent
@@ -78,7 +81,7 @@ def get_day(group_id):
         absent = []
         status = EMPTY
     can_edit = current_user.role == current_user.TYPE.ADMIN \
-               or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group.id == group.id
+               or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id == group.id
     return make_response(jsonify({
         "can_edit": can_edit,
         "name": str(group.number) + group.letter,
@@ -102,6 +105,9 @@ def update_day(group_id):
     group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
+    if current_user.role == current_user.TYPE.VIEWER \
+            or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id != group.id:
+        abort(403)
     day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     if day is None:
         day = Day()
@@ -132,6 +138,8 @@ def get_group_summary(group_id):
     group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
+    if current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id != group.id:
+        abort(403)
     today = date.today()
     td = timedelta(days=1)
     days = [{
@@ -159,6 +167,8 @@ def get_day_summary(dt):
     ok, response = check_user_authenticated()
     if not ok:
         return response
+    if current_user.role == current_user.TYPE.EDITOR:
+        abort(403)
     db = db_session.create_session()
     groups = [{
         "id": g.id,
