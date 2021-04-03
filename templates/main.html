@@ -50,8 +50,7 @@
       <template v-for="info in classes.summary">
         <class-card
           :info="info"
-          :user_role="classes.user_role"
-          :roles="classes.roles"
+          :can_edit="classes.can_edit"
         ></class-card>
       </template>
     </div>
@@ -67,8 +66,7 @@
   Vue.component('class-card', {
       props: {
         info: Object,
-        user_role: Number,
-        roles: Object
+        can_edit: Boolean
       },
       data: function() {
         return {
@@ -89,7 +87,7 @@
                   </a>
                 </div>
                 <div>
-                  <a v-if="canEdit" :href="editLink" class="action">
+                  <a v-if="can_edit" :href="editLink" class="action">
                     дополнить <i class="fas fa-plus"></i>
                   </a>
                 </div>
@@ -105,7 +103,7 @@
                     <template v-if="info.days.today.status == 'ok'">
                       {{ formatAbsent(this.info.days.today.students) }}
                     </template>
-                    <a v-else-if="info.days.today.status == 'empty' && canEdit"
+                    <a v-else-if="info.days.today.status == 'empty' && can_edit"
                       :href="link(info.days.today.date)" class="action"
                     >заполнить</a>
                   </div>
@@ -119,7 +117,7 @@
                     <template v-if="info.days.yesterday.status == 'ok'">
                       {{ formatAbsent(this.info.days.yesterday.students) }}
                     </template>
-                    <a v-else-if="info.days.yesterday.status == 'empty' && canEdit"
+                    <a v-else-if="info.days.yesterday.status == 'empty' && can_edit"
                       :href="link(info.days.yesterday.date)" class="action"
                     >заполнить</a>
                   </div>
@@ -137,9 +135,6 @@
           },
           moreInfoLink: function() {
             return '/summary/group?id=' + this.info.id;
-          },
-          canEdit: function() {
-            return this.user_role != this.roles.viewer
           }
       },
       methods: {

@@ -24,18 +24,32 @@ def summary():
 @app.route("/day")
 @login_required
 def day():
+    gid = request.args.get("id")
+    if gid is None or not gid:
+        return render_template("error.html", text="Ошибка в ссылке", link="/")
+    db = db_session.create_session()
+    g = db.query(Group).get(gid)
+    if g is None:
+        return render_template("error.html", text="Такого класса не существует", link="/")
+    if current_user.role == current_user.TYPE.EDITOR \
+            and current_user.allowed_group.id != g.id:
+        return render_template("error.html", text="Вам сюда нельзя", link="/")
     return send_html("day.html")
 
 
 @app.route("/summary/group")
 @login_required
 def summary_group():
+    if current_user.role == current_user.TYPE.EDITOR:
+        return render_template("error.html", text="Сюда нельзя", link="/")
     return send_html("table.html")
 
 
 @app.route("/summary/day")
 @login_required
 def summary_day():
+    if current_user.role == current_user.TYPE.EDITOR:
+        return render_template("error.html", text="Сюда нельзя", link="/")
     return send_html("table.html")
 
 

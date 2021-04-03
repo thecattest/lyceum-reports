@@ -60,13 +60,15 @@
         </div>
         <div class="card-body text-right px-0 pt-0">
           <ul class="list-group list-group-flush">
-            <item :student="student" v-for="student in students" :key="student.id"></item>
+            <item :student="student" :can_edit="can_edit" v-for="student in students" :key="student.id"></item>
           </ul>
-          <button @click="clear" class="mt-2 btn btn-danger">Очистить</button>
-          <button id="confirm" data-toggle="modal" data-target="#confirmationModal"
-            :disabled="disableUpdate" class="mt-2 btn btn-success ml-0 mr-2">
-            {{ updateButtonText }}
-          </button>
+          <div v-if="can_edit">
+            <button @click="clear" class="mt-2 btn btn-danger">Очистить</button>
+            <button id="confirm" data-toggle="modal" data-target="#confirmationModal"
+              :disabled="disableUpdate" class="mt-2 btn btn-success ml-0 mr-2">
+              {{ updateButtonText }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -106,7 +108,8 @@
 <script>
   Vue.component('item', {
     props: {
-      student: Object
+      student: Object,
+      can_edit: Boolean
     },
     template: `
       <li @click="check" class="student list-group-item d-flex justify-content-between" :class="isAbsent">
@@ -120,6 +123,7 @@
     },
     methods: {
       check: function() {
+        if (!this.can_edit) return;
         this.student.absent = !this.student.absent;
       }
     }
@@ -134,6 +138,7 @@
         date: null,
         loadedAbsent: null,
         alert: null,
+        can_edit: false
       },
       computed: {
         getAbsent: function() {
@@ -196,6 +201,7 @@
           this.name = data.name;
           this.id = data.id;
           this.students = data.students;
+          this.can_edit = data.can_edit;
           if (data.status == "ok") {
             this.alert = {
               text: "Загружены данные за " + this.prettyDate,

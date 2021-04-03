@@ -55,12 +55,7 @@ def get_summary():
         summary.append(group_json)
     response = {
         "summary": summary, 
-        "user_role": current_user.role,
-        "roles": {
-            current_user.TYPE.NAMES.ADMIN: current_user.TYPE.ADMIN,
-            current_user.TYPE.NAMES.VIEWER: current_user.TYPE.VIEWER,
-            current_user.TYPE.NAMES.EDITOR: current_user.TYPE.EDITOR
-        }
+        "can_edit": current_user.role != current_user.TYPE.VIEWER
     }
     return make_response(jsonify(response), 200)
 
@@ -82,8 +77,10 @@ def get_day(group_id):
     except AttributeError:
         absent = []
         status = EMPTY
-
+    can_edit = current_user.role == current_user.TYPE.ADMIN \
+               or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group.id == group.id
     return make_response(jsonify({
+        "can_edit": can_edit,
         "name": str(group.number) + group.letter,
         "id": group.id,
         STATUS: status,
