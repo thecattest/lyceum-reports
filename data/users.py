@@ -37,3 +37,8 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
         ADMIN = 1
         VIEWER = 2
         EDITOR = 3
+
+        class NAMES:
+            ADMIN = "admin"
+            EDITOR = "editor"
+            VIEWER = "viewer"

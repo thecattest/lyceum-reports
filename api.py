@@ -25,7 +25,10 @@ def get_summary():
     if not ok:
         return response
     db = db_session.create_session()
-    groups = db.query(Group).all()
+    if current_user.role == current_user.TYPE.ADMIN or current_user.role == current_user.TYPE.VIEWER:
+        groups = db.query(Group).all()
+    else:
+        groups = [current_user.allowed_group]
     summary = []
     today = date.today()
     yesterday = today - timedelta(days=1)
@@ -48,9 +51,18 @@ def get_summary():
         except AttributeError:
             group_json["days"]["yesterday"][STATUS] = EMPTY
         summary.append(group_json)
+    response = {
+        "summary": summary, 
+        "user": current_user.role,
+        "roles": {
+            current_user.TYPE.NAMES.ADMIN: current_user.TYPE.ADMIN,
+            current_user.TYPE.NAMES.VIEWER: current_user.TYPE.VIEWER,
+            current_user.TYPE.NAMES.EDITOR: current_user.TYPE.EDITOR
+        }
+    }
     return make_response(jsonify(summary), 200)
 
-
+    
 @api_blueprint.route("/api/day/<int:group_id>", methods=["GET"])
 def get_day(group_id):
     ok, response = check_user_authenticated()
