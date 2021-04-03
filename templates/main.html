@@ -34,7 +34,7 @@
     <div class="col-12">
       <div class="header w-100">
         Отсутствующие <br class="d-md-none">
-        <a :href="dayLink" class="action header-link">
+        <a v-if="can_edit" :href="dayLink" class="action header-link">
           <i class="fas fa-table"></i> таблица
         </a>
         <a href="/logout" class="action header-link logout-link">
