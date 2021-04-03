@@ -47,8 +47,12 @@
   <div class="container-fluid px-0 px-md-4">
 
     <div class="row">
-      <template v-for="info in classes">
-        <class-card :info="info"></class-card>
+      <template v-for="info in classes.summary">
+        <class-card
+          :info="info"
+          :user_role="classes.user_role"
+          :roles="classes.roles"
+        ></class-card>
       </template>
     </div>
   </div>
@@ -62,7 +66,9 @@
 <script>
   Vue.component('class-card', {
       props: {
-        info: Object
+        info: Object,
+        user_role: Number,
+        roles: Object
       },
       data: function() {
         return {
@@ -79,12 +85,12 @@
               <div class="my-auto text-right">
                 <div>
                   <a :href="moreInfoLink" class="action">
-                    подробнее
+                    подробнее <i class="far fa-eye"></i>
                   </a>
                 </div>
                 <div>
-                  <a :href="editLink" class="action">
-                    дополнить
+                  <a v-if="canEdit" :href="editLink" class="action">
+                    дополнить <i class="fas fa-plus"></i>
                   </a>
                 </div>
               </div>
@@ -99,7 +105,7 @@
                     <template v-if="info.days.today.status == 'ok'">
                       {{ formatAbsent(this.info.days.today.students) }}
                     </template>
-                    <a v-else-if="info.days.today.status == 'empty'"
+                    <a v-else-if="info.days.today.status == 'empty' && canEdit"
                       :href="link(info.days.today.date)" class="action"
                     >заполнить</a>
                   </div>
@@ -113,7 +119,7 @@
                     <template v-if="info.days.yesterday.status == 'ok'">
                       {{ formatAbsent(this.info.days.yesterday.students) }}
                     </template>
-                    <a v-else-if="info.days.yesterday.status == 'empty'"
+                    <a v-else-if="info.days.yesterday.status == 'empty' && canEdit"
                       :href="link(info.days.yesterday.date)" class="action"
                     >заполнить</a>
                   </div>
@@ -131,6 +137,9 @@
           },
           moreInfoLink: function() {
             return '/summary/group?id=' + this.info.id;
+          },
+          canEdit: function() {
+            return this.user_role != this.roles.viewer
           }
       },
       methods: {
@@ -180,7 +189,7 @@
   app = new Vue({
       el: "#app",
       data: {
-        classes: null
+        classes: {summary: null}
       },
       computed: {
         dayLink: function() {

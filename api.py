@@ -32,35 +32,37 @@ def get_summary():
     summary = []
     today = date.today()
     yesterday = today - timedelta(days=1)
-    for g in groups:
-        group_json = g.to_dict(only=('id', 'number', 'letter'))
-        group_json["days"] = {
-            "today": {"date": today.strftime("%Y-%m-%d")},
-            "yesterday": {"date": yesterday.strftime("%Y-%m-%d")}
+
+    def get_absent(group, dt):
+        day = {
+            "date": dt.strftime("%Y-%m-%d")
         }
         try:
-            today_absent = db.query(Day).filter(Day.group == g, Day.date == today).first().absent
-            group_json["days"]["today"][STATUS] = OK
-            group_json["days"]["today"]["students"] = [st.surname for st in today_absent]
+            absent = db.query(Day).filter(Day.group == group, Day.date == dt).first().absent
+            day[STATUS] = OK
+            day["students"] = [st.surname for st in absent]
         except AttributeError:
-            group_json["days"]["today"][STATUS] = EMPTY
-        try:
-            yesterday_absent = db.query(Day).filter(Day.group == g, Day.date == yesterday).first().absent
-            group_json["days"]["yesterday"][STATUS] = OK
-            group_json["days"]["yesterday"]["students"] = [st.surname for st in yesterday_absent]
-        except AttributeError:
-            group_json["days"]["yesterday"][STATUS] = EMPTY
+            day[STATUS] = EMPTY
+        return day
+
+    for g in groups:
+        group_json = g.to_dict(only=('id', 'number', 'letter'))
+        days = {
+            "today": get_absent(g, today),
+            "yesterday": get_absent(g, yesterday)
+        }
+        group_json["days"] = days
         summary.append(group_json)
     response = {
         "summary": summary, 
-        "user": current_user.role,
+        "user_role": current_user.role,
         "roles": {
             current_user.TYPE.NAMES.ADMIN: current_user.TYPE.ADMIN,
             current_user.TYPE.NAMES.VIEWER: current_user.TYPE.VIEWER,
             current_user.TYPE.NAMES.EDITOR: current_user.TYPE.EDITOR
         }
     }
-    return make_response(jsonify(summary), 200)
+    return make_response(jsonify(response), 200)
 
     
 @api_blueprint.route("/api/day/<int:group_id>", methods=["GET"])
