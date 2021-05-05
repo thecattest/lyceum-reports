@@ -96,3 +96,39 @@ body {
 .hint-title {
   font-size: 18px;
 }
+
+#login:focus, #password:focus {
+    border: 2px solid black;
+    outline: none!important;
+    box-shadow: 7px 7px 0 0.2rem rgb(170 170 170);
+}
+
+#login, #password {
+    border: 1px solid black;
+    font-weight: 600;
+    border-radius: 0;
+    box-shadow: 7px 7px 0 0.2rem rgb(170 170 170);
+}
+
+.btn-submit {
+    border-radius: 0px;
+    border: 2px solid black;
+}
+
+.btn-submit:focus, btn-submit:active {
+    outline: none!important;
+    box-shadow: 0px 0px 0 0.3rem rgb(130 130 130);
+}
+
+.error {
+    background-color: #eac1c1;
+}
+
+.logout-link {
+    color: #ff0000;
+}
+
+.logout-link:hover {
+  background-color: #de4040;
+  /*408dde*/
+}

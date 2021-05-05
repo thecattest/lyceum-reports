@@ -34,8 +34,11 @@
     <div class="col-12">
       <div class="header w-100">
         Отсутствующие <br class="d-md-none">
-        <a :href="dayLink" class="action header-link">
-          таблица
+        <a v-if="classes.can_view_table" :href="dayLink" class="action header-link">
+          <i class="fas fa-table"></i> таблица
+        </a>
+        <a href="/logout" class="action header-link logout-link">
+          выйти <i class="fas fa-sign-out-alt"></i>
         </a>
       </div>
     </div>
@@ -44,8 +47,11 @@
   <div class="container-fluid px-0 px-md-4">
 
     <div class="row">
-      <template v-for="info in classes">
-        <class-card :info="info"></class-card>
+      <template v-for="info in classes.summary">
+        <class-card
+          :info="info"
+          :can_edit="classes.can_edit"
+        ></class-card>
       </template>
     </div>
   </div>
@@ -59,7 +65,8 @@
 <script>
   Vue.component('class-card', {
       props: {
-        info: Object
+        info: Object,
+        can_edit: Boolean
       },
       data: function() {
         return {
@@ -76,12 +83,12 @@
               <div class="my-auto text-right">
                 <div>
                   <a :href="moreInfoLink" class="action">
-                    подробнее
+                    подробнее <i class="far fa-eye"></i>
                   </a>
                 </div>
                 <div>
-                  <a :href="editLink" class="action">
-                    дополнить
+                  <a v-if="can_edit" :href="editLink" class="action">
+                    дополнить <i class="fas fa-plus"></i>
                   </a>
                 </div>
               </div>
@@ -96,7 +103,7 @@
                     <template v-if="info.days.today.status == 'ok'">
                       {{ formatAbsent(this.info.days.today.students) }}
                     </template>
-                    <a v-else-if="info.days.today.status == 'empty'"
+                    <a v-else-if="info.days.today.status == 'empty' && can_edit"
                       :href="link(info.days.today.date)" class="action"
                     >заполнить</a>
                   </div>
@@ -110,7 +117,7 @@
                     <template v-if="info.days.yesterday.status == 'ok'">
                       {{ formatAbsent(this.info.days.yesterday.students) }}
                     </template>
-                    <a v-else-if="info.days.yesterday.status == 'empty'"
+                    <a v-else-if="info.days.yesterday.status == 'empty' && can_edit"
                       :href="link(info.days.yesterday.date)" class="action"
                     >заполнить</a>
                   </div>
@@ -177,7 +184,7 @@
   app = new Vue({
       el: "#app",
       data: {
-        classes: null
+        classes: {summary: null}
       },
       computed: {
         dayLink: function() {

@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, make_response, abort, redirect
 from datetime import date, timedelta, datetime
 from db_init import *
 from request_parsers import GetDayParser, UpdateDayParser
+from app_config import current_user
 
 
 api_blueprint = Blueprint("api", __name__,
@@ -12,42 +13,66 @@ OK = 'ok'
 EMPTY = 'empty'
 
 
+def check_user_authenticated():
+    if not current_user.is_authenticated:
+        return False, make_response(jsonify({"error": "not authenticated"}), 403)
+    return True, None
+
+
 @api_blueprint.route("/api/summary")
 def get_summary():
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     db = db_session.create_session()
-    groups = db.query(Group).all()
+    if current_user.role == current_user.TYPE.ADMIN or current_user.role == current_user.TYPE.VIEWER:
+        groups = db.query(Group).all()
+    else:
+        groups = [current_user.allowed_group]
     summary = []
     today = date.today()
     yesterday = today - timedelta(days=1)
-    for g in groups:
-        group_json = g.to_dict(only=('id', 'number', 'letter'))
-        group_json["days"] = {
-            "today": {"date": today.strftime("%Y-%m-%d")},
-            "yesterday": {"date": yesterday.strftime("%Y-%m-%d")}
+
+    def get_absent(group, dt):
+        day = {
+            "date": dt.strftime("%Y-%m-%d")
         }
         try:
-            today_absent = db.query(Day).filter(Day.group == g, Day.date == today).first().absent
-            group_json["days"]["today"][STATUS] = OK
-            group_json["days"]["today"]["students"] = [st.surname for st in today_absent]
+            absent = db.query(Day).filter(Day.group == group, Day.date == dt).first().absent
+            day[STATUS] = OK
+            day["students"] = [st.surname for st in absent]
         except AttributeError:
-            group_json["days"]["today"][STATUS] = EMPTY
-        try:
-            yesterday_absent = db.query(Day).filter(Day.group == g, Day.date == yesterday).first().absent
-            group_json["days"]["yesterday"][STATUS] = OK
-            group_json["days"]["yesterday"]["students"] = [st.surname for st in yesterday_absent]
-        except AttributeError:
-            group_json["days"]["yesterday"][STATUS] = EMPTY
+            day[STATUS] = EMPTY
+        return day
+
+    for g in groups:
+        group_json = g.to_dict(only=('id', 'number', 'letter'))
+        days = {
+            "today": get_absent(g, today),
+            "yesterday": get_absent(g, yesterday)
+        }
+        group_json["days"] = days
         summary.append(group_json)
-    return make_response(jsonify(summary), 200)
+    response = {
+        "summary": summary, 
+        "can_edit": current_user.role != current_user.TYPE.VIEWER,
+        "can_view_table": current_user.role != current_user.TYPE.EDITOR
+    }
+    return make_response(jsonify(response), 200)
 
-
+    
 @api_blueprint.route("/api/day/<int:group_id>", methods=["GET"])
 def get_day(group_id):
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     args = GetDayParser.parse_args()
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
+    if current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id != group.id:
+        abort(403)
     day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     try:
         absent = day.absent
@@ -55,8 +80,10 @@ def get_day(group_id):
     except AttributeError:
         absent = []
         status = EMPTY
-
+    can_edit = current_user.role == current_user.TYPE.ADMIN \
+               or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id == group.id
     return make_response(jsonify({
+        "can_edit": can_edit,
         "name": str(group.number) + group.letter,
         "id": group.id,
         STATUS: status,
@@ -70,11 +97,17 @@ def get_day(group_id):
 
 @api_blueprint.route("/api/day/<int:group_id>", methods=["POST"])
 def update_day(group_id):
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     args = UpdateDayParser.parse_args()
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
+    if current_user.role == current_user.TYPE.VIEWER \
+            or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id != group.id:
+        abort(403)
     day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     if day is None:
         day = Day()
@@ -98,10 +131,15 @@ def update_day(group_id):
 
 @api_blueprint.route("/api/summary/group/<int:group_id>", methods=["GET"])
 def get_group_summary(group_id):
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
+    if current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id != group.id:
+        abort(403)
     today = date.today()
     td = timedelta(days=1)
     days = [{
@@ -126,6 +164,11 @@ def get_group_summary(group_id):
 
 @api_blueprint.route("/api/summary/day/<dt>")
 def get_day_summary(dt):
+    ok, response = check_user_authenticated()
+    if not ok:
+        return response
+    if current_user.role == current_user.TYPE.EDITOR:
+        abort(403)
     db = db_session.create_session()
     groups = [{
         "id": g.id,
