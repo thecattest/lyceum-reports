@@ -8,3 +8,7 @@ GetDayParser.add_argument("date", required=True, type=str)
 UpdateDayParser = reqparse.RequestParser()
 UpdateDayParser.add_argument("date", required=True, type=str)
 UpdateDayParser.add_argument("ids", type=str)
+
+LoginParser = reqparse.RequestParser()
+LoginParser.add_argument("login", required=True, type=str)
+LoginParser.add_argument("password", required=True, type=str)

@@ -1,8 +1,8 @@
-from flask import Blueprint, jsonify, make_response, abort, redirect
+from flask import Blueprint, jsonify, make_response, abort, redirect, request
 from datetime import date, timedelta, datetime
 from db_init import *
-from request_parsers import GetDayParser, UpdateDayParser
-from app_config import current_user
+from request_parsers import GetDayParser, UpdateDayParser, LoginParser
+from app_config import current_user, login_user
 
 
 api_blueprint = Blueprint("api", __name__,
@@ -187,3 +187,21 @@ def get_day_summary(dt):
         "date": dt,
         "groups": groups
     }), 200)
+
+
+@api_blueprint.route("/api/login", methods=["POST"])
+def login_api():
+    args = LoginParser.parse_args()
+    db = db_session.create_session()
+    user = db.query(User).filter(User.login == args.login).first()
+    if user:
+        if user.check_password(args.password):
+            login_user(user, True)
+            data = {"msg": "ok"}
+            return make_response(jsonify(data), 200)
+        else:
+            data = {"msg": "wrong password"}
+            return make_response(jsonify(data), 401)
+    else:
+        data = {"msg": "wrong login"}
+        return make_response(jsonify(data), 401)
