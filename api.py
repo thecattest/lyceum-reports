@@ -4,7 +4,6 @@ from db_init import *
 from request_parsers import GetDayParser, UpdateDayParser, LoginParser
 from app_config import current_user, login_user
 
-
 api_blueprint = Blueprint("api", __name__,
                           template_folder="templates")
 
@@ -54,13 +53,14 @@ def get_summary():
         group_json["days"] = days
         summary.append(group_json)
     response = {
-        "summary": summary, 
+        "summary": summary,
         "can_edit": current_user.role != current_user.TYPE.VIEWER,
         "can_view_table": current_user.role != current_user.TYPE.EDITOR
     }
+    db.close()
     return make_response(jsonify(response), 200)
 
-    
+
 @api_blueprint.route("/api/day/<int:group_id>", methods=["GET"])
 def get_day(group_id):
     ok, response = check_user_authenticated()
@@ -82,7 +82,7 @@ def get_day(group_id):
         status = EMPTY
     can_edit = current_user.role == current_user.TYPE.ADMIN \
                or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id == group.id
-    return make_response(jsonify({
+    res = {
         "can_edit": can_edit,
         "name": str(group.number) + group.letter,
         "id": group.id,
@@ -92,7 +92,9 @@ def get_day(group_id):
             "id": st.id,
             "absent": st.id in [a.id for a in absent]
         } for st in group.students]
-    }), 200)
+    }
+    db.close()
+    return make_response(jsonify(res), 200)
 
 
 @api_blueprint.route("/api/day/<int:group_id>", methods=["POST"])
@@ -126,6 +128,7 @@ def update_day(group_id):
             abort(400)
         day.absent.append(student)
     db.commit()
+    db.close()
     return redirect("/")
 
 
@@ -143,7 +146,7 @@ def get_group_summary(group_id):
     today = date.today()
     td = timedelta(days=1)
     days = [{
-        "date": (today-(td*i)).strftime("%Y-%m-%d"),
+        "date": (today - (td * i)).strftime("%Y-%m-%d"),
         "status": '',
         "students": []
     } for i in range(50)]
@@ -156,6 +159,7 @@ def get_group_summary(group_id):
         else:
             days[i][STATUS] = OK
             days[i]["students"] = [st.surname for st in day.absent]
+    db.close()
     return make_response(jsonify({
         "name": str(group.number) + group.letter,
         "days": days
@@ -183,6 +187,7 @@ def get_day_summary(dt):
         else:
             groups[i][STATUS] = OK
             groups[i]["students"] = [st.surname for st in day.absent]
+    db.close()
     return make_response(jsonify({
         "date": dt,
         "groups": groups
@@ -194,6 +199,7 @@ def login_api():
     args = LoginParser.parse_args()
     db = db_session.create_session()
     user = db.query(User).filter(User.login == args.login).first()
+    db.close()
     if user:
         if user.check_password(args.password):
             login_user(user, True)

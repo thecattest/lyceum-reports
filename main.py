@@ -29,6 +29,7 @@ def day():
         return render_template("error.html", text="Ошибка в ссылке", link="/")
     db = db_session.create_session()
     g = db.query(Group).get(gid)
+    db.close()
     if g is None:
         return render_template("error.html", text="Такого класса не существует", link="/")
     if current_user.role == current_user.TYPE.EDITOR \
@@ -45,6 +46,7 @@ def summary_group():
         return render_template("error.html", text="Ошибка в ссылке", link="/")
     db = db_session.create_session()
     g = db.query(Group).get(gid)
+    db.close()
     if g is None:
         return render_template("error.html", text="Такого класса не существует", link="/")
     if current_user.role == current_user.TYPE.EDITOR \
