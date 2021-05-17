@@ -83,12 +83,13 @@ class DaysListResource(Resource):
             db.add(day)
 
         day.absent = []
-        for student_json in args.absent:
-            student_obj = loads(student_json.replace("'", '"'))
-            student = db.query(Student).get(student_obj["id"])
-            if student is None or student not in group.students:
-                abort(400)
-            day.absent.append(student)
+        if args.absent:
+            for student_json in args.absent:
+                student_obj = loads(student_json.replace("'", '"'))
+                student = db.query(Student).get(student_obj["id"])
+                if student is None or student not in group.students:
+                    abort(400)
+                day.absent.append(student)
 
         db.commit()
         db.close()
