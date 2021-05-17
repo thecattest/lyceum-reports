@@ -37,7 +37,7 @@ class Day(SqlAlchemyBase, SerializerMixin):
         parser = reqparse.RequestParser()
         parser.add_argument("group_id", type=str)
         parser.add_argument("date", type=str)
-        parser.add_argument("absent")
+        parser.add_argument("absent", action='append')
         return parser
 
     def __repr__(self):

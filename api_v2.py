@@ -3,6 +3,7 @@ from flask_restful import Resource, abort
 from datetime import date, timedelta
 from db_init import *
 from app_config import current_user
+from json import loads
 
 
 def check_user_is_authenticated():
@@ -74,7 +75,7 @@ class DaysListResource(Resource):
         if not current_user.is_group_allowed(group):
             abort(403)
 
-        day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
+        day = db.query(Day).filter(Day.group_id == args.group_id, Day.date == args.date).first()
         if day is None:
             day = Day()
             day.date = datetime.strptime(args.date, "%Y-%m-%d")
@@ -82,7 +83,12 @@ class DaysListResource(Resource):
             db.add(day)
 
         day.absent = []
-        print(args.absent)
+        for student_json in args.absent:
+            student_obj = loads(student_json.replace("'", '"'))
+            student = db.query(Student).get(student_obj["id"])
+            if student is None or student not in group.students:
+                abort(400)
+            day.absent.append(student)
 
         db.commit()
         db.close()
