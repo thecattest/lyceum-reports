@@ -27,7 +27,7 @@ class GroupsListResource(Resource):
             groups = [current_user.allowed_group]
 
         for group in groups:
-            group_json = group.get_json()
+            group_json = group.get_json(True)
             group_json["days"] = []
             for dt in [today_date, yesterday_date]:
                 day = db.query(Day).filter(Day.group == group, Day.date == dt).first()
