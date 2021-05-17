@@ -17,5 +17,8 @@ class Student(SqlAlchemyBase, SerializerMixin):
     days = orm.relation("Day",
                         secondary="students_to_days")
 
+    def get_json(self):
+        return self.to_dict(only=('id', 'surname', 'name', 'group_id'))
+
     def __repr__(self):
         return f"<Student {self.id} {self.surname} {self.name}>"

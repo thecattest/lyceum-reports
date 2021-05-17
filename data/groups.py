@@ -16,5 +16,13 @@ class Group(SqlAlchemyBase, SerializerMixin):
     days = orm.relation("Day", back_populates="group")
     users = orm.relation("User", back_populates="allowed_group")
 
+    def get_json(self, with_students=False):
+        group_json = self.to_dict(only=('id', 'number', 'letter'))
+        if with_students:
+            group_json["students"] = []
+            for st in self.students:
+                group_json["students"].append(st.get_json())
+        return group_json
+
     def __repr__(self):
         return f"<Group {self.id} {self.number}{self.letter}>"

@@ -24,5 +24,12 @@ class Day(SqlAlchemyBase, SerializerMixin):
     absent = orm.relation("Student",
                           secondary="students_to_days")
 
+    def get_json(self):
+        day_json = self.to_dict(only=('id', 'date', 'group_id'))
+        day_json["absent"] = []
+        for absent in self.absent:
+            day_json["absent"].append(absent.get_json())
+        return day_json
+
     def __repr__(self):
         return f"<Day {self.id} {self.date}>"

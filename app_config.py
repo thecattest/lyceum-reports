@@ -2,7 +2,7 @@ from flask import Flask, Response, request, redirect, render_template
 from flask_restful import Api
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 # from flask_cors import CORS
-from api_v2 import GroupsListResource
+from api_v2 import GroupsListResource, GroupsResource
 
 from db_init import *
 from api import api_blueprint
@@ -17,6 +17,7 @@ app.config['SECRET_KEY'] = 'lyceum_reports_the_best'
 
 app.register_blueprint(api_blueprint)
 api.add_resource(GroupsListResource, '/api/v2/groups/')
+api.add_resource(GroupsResource, '/api/v2/groups/<int:group_id>/<dt>')
 
 login_manager = LoginManager()
 login_manager.init_app(app)

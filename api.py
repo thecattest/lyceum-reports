@@ -21,7 +21,7 @@ def check_user_is_authenticated():
 def get_summary():
     check_user_is_authenticated()
     db = db_session.create_session()
-    if current_user.role == current_user.TYPE.ADMIN or current_user.role == current_user.TYPE.VIEWER:
+    if current_user.all_groups_allowed():
         groups = db.query(Group).all()
     else:
         groups = [current_user.allowed_group]
@@ -66,7 +66,7 @@ def get_day(group_id):
     group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
-    if current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id != group.id:
+    if not current_user.is_group_allowed(group):
         abort(403)
     day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     try:

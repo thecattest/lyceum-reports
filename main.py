@@ -32,7 +32,7 @@ def day():
     db.close()
     if g is None:
         return render_template("error.html", text="Такого класса не существует", link="/")
-    if current_user.role == current_user.TYPE.EDITOR \
+    if current_user.role == current_user.TYPE.VIEWER or current_user.role == current_user.TYPE.EDITOR \
             and current_user.allowed_group.id != g.id:
         return render_template("error.html", text="Вам сюда нельзя", link="/")
     return send_html("day.html")
