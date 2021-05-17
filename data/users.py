@@ -30,6 +30,9 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     def check_password(self, password):
         return check_password_hash(self.hashed_password, password)
 
+    def all_groups_allowed(self):
+        return self.role == self.TYPE.ADMIN or self.role == self.TYPE.VIEWER
+
     def __repr__(self):
         return f"<User {self.id} {self.login} {self.notes} {self.role}>"
 
