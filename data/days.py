@@ -2,6 +2,7 @@ import sqlalchemy
 from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
 from sqlalchemy_serializer import SerializerMixin
+from flask_restful import reqparse
 
 
 association_table = sqlalchemy.Table('students_to_days', SqlAlchemyBase.metadata,
@@ -30,6 +31,14 @@ class Day(SqlAlchemyBase, SerializerMixin):
         for absent in self.absent:
             day_json["absent"].append(absent.get_json())
         return day_json
+
+    @staticmethod
+    def get_parser():
+        parser = reqparse.RequestParser()
+        parser.add_argument("group_id", type=str)
+        parser.add_argument("date", type=str)
+        parser.add_argument("absent")
+        return parser
 
     def __repr__(self):
         return f"<Day {self.id} {self.date}>"
