@@ -12,17 +12,14 @@ OK = 'ok'
 EMPTY = 'empty'
 
 
-def check_user_authenticated():
+def check_user_is_authenticated():
     if not current_user.is_authenticated:
-        return False, make_response(jsonify({"error": "not authenticated"}), 403)
-    return True, None
+        abort(make_response(jsonify({"error": "not authenticated"}), 403))
 
 
 @api_blueprint.route("/api/summary")
 def get_summary():
-    ok, response = check_user_authenticated()
-    if not ok:
-        return response
+    check_user_is_authenticated()
     db = db_session.create_session()
     if current_user.role == current_user.TYPE.ADMIN or current_user.role == current_user.TYPE.VIEWER:
         groups = db.query(Group).all()
@@ -63,9 +60,7 @@ def get_summary():
 
 @api_blueprint.route("/api/day/<int:group_id>", methods=["GET"])
 def get_day(group_id):
-    ok, response = check_user_authenticated()
-    if not ok:
-        return response
+    check_user_is_authenticated()
     args = GetDayParser.parse_args()
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
@@ -99,9 +94,7 @@ def get_day(group_id):
 
 @api_blueprint.route("/api/day/<int:group_id>", methods=["POST"])
 def update_day(group_id):
-    ok, response = check_user_authenticated()
-    if not ok:
-        return response
+    check_user_is_authenticated()
     args = UpdateDayParser.parse_args()
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
@@ -134,9 +127,7 @@ def update_day(group_id):
 
 @api_blueprint.route("/api/summary/group/<int:group_id>", methods=["GET"])
 def get_group_summary(group_id):
-    ok, response = check_user_authenticated()
-    if not ok:
-        return response
+    check_user_is_authenticated()
     db = db_session.create_session()
     group = db.query(Group).get(group_id)
     if group is None:
@@ -168,9 +159,7 @@ def get_group_summary(group_id):
 
 @api_blueprint.route("/api/summary/day/<dt>")
 def get_day_summary(dt):
-    ok, response = check_user_authenticated()
-    if not ok:
-        return response
+    check_user_is_authenticated()
     if current_user.role == current_user.TYPE.EDITOR:
         abort(403)
     db = db_session.create_session()
