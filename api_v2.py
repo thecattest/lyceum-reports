@@ -4,6 +4,8 @@ from datetime import date, timedelta
 from db_init import *
 from app_config import current_user
 from json import loads
+from request_parsers import LoginParser
+from app_config import current_user, login_user
 
 
 def check_user_is_authenticated():
@@ -60,7 +62,7 @@ class GroupsResource(Resource):
             group_json["days"].append(day_json)
 
         db.close()
-        return group_json
+        return jsonify(group_json)
 
 
 class DaysListResource(Resource):
@@ -93,3 +95,22 @@ class DaysListResource(Resource):
 
         db.commit()
         db.close()
+
+
+class PermissionsResource(Resource):
+    def post(self):
+        args = LoginParser.parse_args()
+        db = db_session.create_session()
+        user = db.query(User).filter(User.login == args.login).first()
+        db.close()
+        if user:
+            if user.check_password(args.password):
+                login_user(user, True)
+                return jsonify({
+                    "can_edit": user.can_edit(),
+                    "can_view_table": user.can_view_table()
+                })
+            else:
+                abort(401)
+        else:
+            abort(401)

@@ -51,8 +51,8 @@ def get_summary():
         summary.append(group_json)
     response = {
         "summary": summary,
-        "can_edit": current_user.role != current_user.TYPE.VIEWER,
-        "can_view_table": current_user.role != current_user.TYPE.EDITOR
+        "can_edit": current_user.can_edit(),
+        "can_view_table": current_user.can_view_table()
     }
     db.close()
     return make_response(jsonify(response), 200)
@@ -75,8 +75,7 @@ def get_day(group_id):
     except AttributeError:
         absent = []
         status = EMPTY
-    can_edit = current_user.role == current_user.TYPE.ADMIN \
-               or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id == group.id
+    can_edit = current_user.is_group_allowed(group)
     res = {
         "can_edit": can_edit,
         "name": str(group.number) + group.letter,
@@ -100,8 +99,7 @@ def update_day(group_id):
     group = db.query(Group).get(group_id)
     if group is None:
         abort(404)
-    if current_user.role == current_user.TYPE.VIEWER \
-            or current_user.role == current_user.TYPE.EDITOR and current_user.allowed_group_id != group.id:
+    if not current_user.is_group_allowed(group):
         abort(403)
     day = db.query(Day).filter(Day.group_id == group_id, Day.date == args.date).first()
     if day is None:

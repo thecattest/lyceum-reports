@@ -38,6 +38,12 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
         is_editor = self.role == self.TYPE.EDITOR and self.allowed_group_id == group.id
         return is_admin or is_editor
 
+    def can_edit(self):
+        return self.role != self.TYPE.VIEWER
+
+    def can_view_table(self):
+        return self.role != self.TYPE.EDITOR
+
     def __repr__(self):
         return f"<User {self.id} {self.login} {self.notes} {self.role}>"
 
