@@ -2,7 +2,8 @@ from flask import Flask, Response, request, redirect, render_template
 from flask_restful import Api
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 # from flask_cors import CORS
-from api_v2 import GroupsListResource, GroupsResource, DaysListResource, PermissionsResource
+from api_v2 import GroupsListResource, GroupsResource, \
+    DaysListResource, PermissionsResource, DaysResource
 
 from db_init import *
 from api import api_blueprint
@@ -19,6 +20,7 @@ app.register_blueprint(api_blueprint)
 api.add_resource(GroupsListResource, '/api/v2/groups/')
 api.add_resource(GroupsResource, '/api/v2/groups/<int:group_id>/<dt>')
 api.add_resource(DaysListResource, '/api/v2/days/')
+api.add_resource(DaysResource, '/api/v2/days/<dt>')
 api.add_resource(PermissionsResource, '/api/v2/login/')
 
 login_manager = LoginManager()

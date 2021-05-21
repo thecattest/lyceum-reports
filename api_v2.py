@@ -44,7 +44,7 @@ class GroupsListResource(Resource):
 
 class GroupsResource(Resource):
     def get(self, group_id, dt):
-        # get
+        # get group day
         check_user_is_authenticated()
         db = db_session.create_session()
         group = db.query(Group).get(group_id)
@@ -67,6 +67,7 @@ class GroupsResource(Resource):
 
 class DaysListResource(Resource):
     def post(self):
+        # update group day
         check_user_is_authenticated()
         args = Day.get_parser().parse_args()
 
@@ -97,8 +98,25 @@ class DaysListResource(Resource):
         db.close()
 
 
+class DaysResource(Resource):
+    def get(self, dt):
+        # get day summary
+        check_user_is_authenticated()
+        if current_user.role == current_user.TYPE.EDITOR:
+            abort(403)
+        db = db_session.create_session()
+        groups = [g.get_json(True) for g in db.query(Group).all()]
+        for i in range(len(groups)):
+            day = db.query(Day).filter(Day.date == dt, Day.group_id == groups[i]["id"]).first()
+            if day is not None:
+                groups[i]["days"] = day.get_json()
+        db.close()
+        return groups
+
+
 class PermissionsResource(Resource):
     def post(self):
+        # login and get user permissions
         args = LoginParser.parse_args()
         db = db_session.create_session()
         user = db.query(User).filter(User.login == args.login).first()
