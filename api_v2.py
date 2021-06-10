@@ -1,6 +1,6 @@
 from flask import jsonify
 from flask_restful import Resource, abort
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from db_init import *
 from app_config import current_user
 from json import loads
@@ -84,7 +84,7 @@ class DaysListResource(Resource):
             day.date = datetime.strptime(args.date, "%Y-%m-%d")
             day.group_id = group_id
             db.add(day)
-
+        day.updated = datetime.now()
         day.absent = []
         if args.absent:
             for student_json in args.absent:

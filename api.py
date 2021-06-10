@@ -107,6 +107,7 @@ def update_day(group_id):
         day.date = datetime.strptime(args.date, "%Y-%m-%d")
         day.group_id = group_id
         db.add(day)
+    day.updated = datetime.now()
     try:
         ids = list(map(int, args.ids.split(",")))
     except ValueError:

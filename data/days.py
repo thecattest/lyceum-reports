@@ -1,8 +1,10 @@
 import sqlalchemy
 from sqlalchemy import orm
-from .db_session import SqlAlchemyBase
+from data.db_session import SqlAlchemyBase
 from sqlalchemy_serializer import SerializerMixin
 from flask_restful import reqparse
+
+from datetime import datetime
 
 
 association_table = sqlalchemy.Table('students_to_days', SqlAlchemyBase.metadata,
@@ -19,6 +21,7 @@ class Day(SqlAlchemyBase, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     date = sqlalchemy.Column(sqlalchemy.Date, unique=False, nullable=False)
+    updated = sqlalchemy.Column(sqlalchemy.DateTime, unique=False, nullable=False, default=datetime.now)
     group_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("groups.id"))
 
     group = orm.relation("Group")
