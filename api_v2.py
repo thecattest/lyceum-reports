@@ -82,7 +82,7 @@ class DaysListResource(Resource):
         if day is None:
             day = Day()
             day.date = datetime.strptime(args.date, "%Y-%m-%d")
-            day.group_id = group_id
+            day.group_id = args.group_id
             db.add(day)
         day.updated = datetime.now()
         day.absent = []
@@ -109,9 +109,9 @@ class DaysResource(Resource):
         for i in range(len(groups)):
             day = db.query(Day).filter(Day.date == dt, Day.group_id == groups[i]["id"]).first()
             if day is not None:
-                groups[i]["days"] = day.get_json()
+                groups[i]["days"] = [day.get_json()]
         db.close()
-        return groups
+        return jsonify(groups)
 
 
 class PermissionsResource(Resource):
