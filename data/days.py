@@ -44,4 +44,4 @@ class Day(SqlAlchemyBase, SerializerMixin):
         return parser
 
     def __repr__(self):
-        return f"<Day {self.id} {self.date}>"
+        return f"<Day {self.id} {self.group_id} {self.date}>"

@@ -114,6 +114,27 @@ class DaysResource(Resource):
         return jsonify(groups)
 
 
+class UpdatesResource(Resource):
+    def get(self, seconds):
+        timestamp = datetime.now() - timedelta(seconds=int(seconds))
+        check_user_is_authenticated()
+        db = db_session.create_session()
+        if current_user.role == current_user.TYPE.EDITOR:
+            days = db.query(Day).filter(Day.group_id == current_user.allowed_group_id, Day.updated >= timestamp).all()
+        else:
+            days = db.query(Day).filter(Day.updated >= timestamp).all()
+        result = {}
+        print(days)
+        for day in days:
+            group = day.group
+            if group.id not in result:
+                group_json = group.get_json(with_students=True)
+                group_json["days"] = []
+                result[group.id] = group_json
+            result[group.id]["days"].append(day.get_json())
+        return jsonify(list(result.values()))
+
+
 class PermissionsResource(Resource):
     def post(self):
         # login and get user permissions
