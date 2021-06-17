@@ -162,6 +162,7 @@ class UpdatesResource(Resource):
                 group_json["days"] = []
                 result[group.id] = group_json
             result[group.id]["days"].append(day.get_json())
+        db.close()
         return jsonify(list(result.values()))
 
 
