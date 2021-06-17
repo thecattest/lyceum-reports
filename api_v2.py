@@ -49,8 +49,10 @@ class GroupsResource(Resource):
         db = db_session.create_session()
         group = db.query(Group).get(group_id)
         if group is None:
+            db.close()
             abort(404)
         if not current_user.is_group_allowed(group):
+            db.close()
             abort(403)
 
         group_json = group.get_json(with_students=True)
@@ -65,6 +67,31 @@ class GroupsResource(Resource):
         return jsonify(group_json)
 
 
+class GroupSummaryResource(Resource):
+    def get(self, group_id):
+        # get one group summary for diagram
+        check_user_is_authenticated()
+        if not current_user.can_view_table():
+            abort(403)
+
+        end_date = date.today()
+        start_date = end_date - timedelta(days=15)
+
+        db = db_session.create_session()
+        group = db.query(Group).get(group_id)
+        if group is None:
+            db.close()
+            abort(404)
+        group_json = group.get_json(with_students=True)
+        group_json["days"] = []
+        days = db.query(Day).filter(Day.date >= start_date, Day.date <= end_date).all()
+        for day in days:
+            group_json["days"].append(day.get_json())
+
+        db.close()
+        return jsonify(group_json)
+
+
 class DaysListResource(Resource):
     def post(self):
         # update group day
@@ -74,8 +101,10 @@ class DaysListResource(Resource):
         db = db_session.create_session()
         group = db.query(Group).get(args.group_id)
         if group is None:
+            db.close()
             abort(404)
         if not current_user.is_group_allowed(group):
+            db.close()
             abort(403)
 
         day = db.query(Day).filter(Day.group_id == args.group_id, Day.date == args.date).first()
@@ -91,6 +120,7 @@ class DaysListResource(Resource):
                 student_obj = loads(student_json.replace("'", '"'))
                 student = db.query(Student).get(student_obj["id"])
                 if student is None or student not in group.students:
+                    db.close()
                     abort(400)
                 day.absent.append(student)
 
@@ -150,6 +180,8 @@ class PermissionsResource(Resource):
                     "can_view_table": user.can_view_table()
                 })
             else:
+                db.close()
                 abort(401)
         else:
+            db.close()
             abort(401)
