@@ -75,7 +75,7 @@ class GroupSummaryResource(Resource):
             abort(403)
 
         end_date = date.today()
-        start_date = end_date - timedelta(days=15)
+        start_date = end_date - timedelta(days=25)
 
         db = db_session.create_session()
         group = db.query(Group).get(group_id)
