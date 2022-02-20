@@ -1,8 +1,12 @@
-from flask import Blueprint, jsonify, make_response, abort, redirect, request
+from flask import Blueprint, jsonify, make_response, abort, redirect, request, send_file
 from datetime import date, timedelta, datetime
 from db_init import *
 from request_parsers import GetDayParser, UpdateDayParser, LoginParser
 from app_config import current_user, login_user
+
+import xlsxwriter
+from io import BytesIO
+
 
 api_blueprint = Blueprint("api", __name__,
                           template_folder="templates")
@@ -15,6 +19,59 @@ EMPTY = 'empty'
 def check_user_is_authenticated():
     if not current_user.is_authenticated:
         abort(make_response(jsonify({"error": "not authenticated"}), 403))
+
+
+@api_blueprint.route("/api/excel/<start_date>/<end_date>", methods=["GET"])
+def get_excel(start_date, end_date):
+    check_user_is_authenticated()
+    if not current_user.can_view_table():
+        abort(403)
+    db = db_session.create_session()
+
+    groups = db.query(Group).all()
+    groups_dict = [g.get_json() for g in groups]
+    groups_dict.sort(key=lambda g: (g["number"], g["letter"]))
+
+    days = db.query(Day).filter(Day.date >= start_date, Day.date <= end_date).all()
+    days_dict = {(d.date.strftime("%Y-%m-%d"), d.group_id): d.absent for d in days}
+
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+    end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+
+    days_count = (end_dt - start_dt).days + 1
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output)
+    text_wrap_format = workbook.add_format({'text_wrap': True})
+    title_format = workbook.add_format({'bold': True, 'align': 'center'})
+    for i in range(days_count):
+        cur_date = start_dt + timedelta(days=i)
+        cur_date_str = cur_date.strftime("%d.%m")
+        worksheet = workbook.add_worksheet(cur_date_str)
+        worksheet.write(0, 1, "Отсутствующие", title_format)
+        worksheet.set_column(1, 1, 50)
+
+        for j in range(len(groups_dict)):
+            g = groups_dict[j]
+            worksheet.write(j+1, 0, str(g["number"]) + g["letter"])
+            absent = days_dict.get(
+                (cur_date.strftime("%Y-%m-%d"), g["id"]), None
+            )
+            if absent is None:
+                absent_str = "Нет данных"
+            else:
+                if absent:
+                    absent_str = ', '.join([a.surname for a in absent])
+                else:
+                    absent_str = "Все в классе"
+            worksheet.write(j+1, 1, absent_str, text_wrap_format)
+    workbook.close()
+    db.close()
+    output.seek(0)
+    return send_file(
+        output,
+        as_attachment=True,
+        attachment_filename=f"Отсутствующие {start_dt.strftime('%d-%m-%Y')} - {end_dt.strftime('%d-%m-%Y')}.xlsx"
+    )
 
 
 @api_blueprint.route("/api/summary")
